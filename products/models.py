@@ -56,7 +56,7 @@ class Brand(models.Model):
         db_table = 'brands'
         verbose_name = 'Brand'
         verbose_name_plural = 'Brands'
-        ordering = ['name']
+        ordering = ['-created_at']
         indexes = [
             models.Index(fields=['slug']),
             models.Index(fields=['status']),
@@ -64,6 +64,8 @@ class Brand(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+    
+    
 
 
 

@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
-
-
 import os
 import cloudinary
 import dj_database_url
@@ -85,6 +83,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'django_cotton',
+    'widget_tweaks',
   
     
 
@@ -187,24 +186,24 @@ WSGI_APPLICATION = 'wavelift.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.getenv('db_name'),
-#         'USER': os.getenv('db_user'),
-#         'PASSWORD':os.getenv('db_password'),
-#         'HOST': 'localhost',  # or your DB host
-#         'PORT': '5432',       # default PostgreSQL port
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('db_name'),
+        'USER': os.getenv('db_user'),
+        'PASSWORD':os.getenv('db_password'),
+        'HOST': 'localhost',  # or your DB host
+        'PORT': '5432',       # default PostgreSQL port
+    }
+}
 
 # DATABASES = {
 #     'default': dj_database_url.parse(

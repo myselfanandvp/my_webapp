@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import ProductForm, ProductImagesForm, ProductCategoryForm, CreatColorForm, ProductColor
+from .forms import ProductForm, ProductImagesForm, ProductCategoryForm, CreatColorForm, ProductColor,ProductBrandForm
 from .models import Category
 from django.views import View
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import  HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Product, ProductImage
 from .filters import ProductFilter, CategoryFilter
@@ -13,6 +13,7 @@ from django.views.decorators.cache import never_cache
 from view_breadcrumbs import DetailBreadcrumbMixin
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Max,Avg
+from .models import Brand
 
 # Create your views here.
 
@@ -267,4 +268,39 @@ class ProductDetail(LoginRequiredMixin, DetailBreadcrumbMixin, View):
         rating = Product.objects.filter(id=id).annotate(max_rating=Avg('reviews__rating')).values('max_rating')[0]['max_rating']
 
         return render(request,self.template_name,{'product':product,'product_rating':rating})
+    
+@method_decorator(never_cache, name='dispatch')    
+class AddBrand(LoginRequiredMixin,View):
+    template_name = 'products/create_brand.html'
+    def get(self,request):
+        brands = Brand.objects.all()
+        form = ProductBrandForm()
+        return render(request,self.template_name,{'form':form,'brands':brands})
+    def post(self,request):
+        form = ProductBrandForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('add_brand_url')
+        return render(request,self.template_name,{'form':form})
+    
+    
+class DeactivateBrand(LoginRequiredMixin,View):
+    template_name = 'products/create_brand.html'
+    def post(self,request,id):
+        brand = get_object_or_404(Brand,id=id)
+        if brand.status  == 1:
+            brand.status=0
+        elif brand.status == 0:
+            brand.status=1        
+        brand.save()        
+        return redirect('add_brand_url')
+    
+    
+class DeleteBrand(LoginRequiredMixin,View):
+    def post(self,request,id):
+        brand = get_object_or_404(Brand,id=id)
+        brand.delete()
+        return redirect('add_brand_url')
+
+        
   

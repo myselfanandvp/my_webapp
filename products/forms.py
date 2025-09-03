@@ -79,9 +79,14 @@ class ProductForm(forms.ModelForm):
         
         
 class ProductBrandForm(forms.ModelForm):
+    slug= forms.CharField(widget=forms.TextInput(attrs={**inputfield_style}))
+    name= forms.CharField(widget=forms.TextInput(attrs={**inputfield_style}))
+    status = forms.ChoiceField(choices=[  (1, 'Active'),
+        (0, 'Inactive')],widget=forms.Select(attrs={**inputfield_style}))
+    
     class Meta:
         model =Brand
-        fields ="__all__"
+        fields =['name','slug','status']
         
 class ProductCategoryForm(forms.ModelForm):
     slug= forms.CharField(widget=forms.TextInput(attrs={**inputfield_style}))

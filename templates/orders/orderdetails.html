@@ -1,0 +1,509 @@
+{% extends 'shared/profile_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex flex-col gap-2 bg-gray-300 min-h-screen w-full">
+    {% for order in orders %}
+    <div class="container mx-auto px-4 py-6 sm:py-8">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="p-3 sm:p-4 mb-4 text-sm rounded-lg
+                {% if message.tags == 'success' %}bg-green-100 text-green-700{% endif %}
+                {% if message.tags == 'error' %}bg-red-100 text-red-700{% endif %}
+                {% if message.tags == 'info' %}bg-blue-100 text-blue-700{% endif %}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Order Header -->
+        <div class="bg-gray-500 p-3 rounded-xl">
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+                <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-4 gap-4">
+                    <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">Order ID: #{{ order.id }}</h1>
+                    <div class="flex justify-between gap-4 flex-col lg:flex-row">
+                        {%if order.status in 'confirmed,pending,shipped' %}
+                            <form action="{% url 'orders_url' %}" method="post" data-order-id="{{ order.id }}" class="w-full sm:w-auto" onsubmit="cancel_order(event)">
+                        {% csrf_token %}
+                          <input type="hidden" name="order_id" value="{{ order.id }}">
+                        <input type="hidden" name="cancellation_reason" class="cancellation-reason">
+                        <button type="submit"
+                            class="w-full sm:w-auto bg-red-500 text-white px-4 py-1.5 rounded-md hover:bg-red-600 transition duration-200 hover:cursor-pointer"
+                            aria-label="Cancel Order #{{ order.id }}">
+                            Cancel Order
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    
+                          <!-- Download PDF Button -->
+                        <form action="{% url 'order_report_url' %}" enctype="multipart/form-data" method="post" class="w-full sm:w-auto">
+                            {% csrf_token %}
+                            <input type="text" class="hidden" name="orderid" hidden value="{{order.id}}">
+                            <button type="submit"
+                                class="w-full  bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700 transition duration-200 hover:cursor-pointer"
+                                aria-label="Download Order #{{ order.id }} as PDF">
+                                Download Invoice
+                            </button>
+                        </form>
+                    </div>
+                    
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            <span class="font-semibold">Purchase Date:</span> {{ order.created_at|date:"d M, Y" }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            <span class="font-semibold">Status:</span> {{ order.status }}
+                        </p>
+                    </div>
+                    {%if order.payment_method == 'razorpay' %}
+                     <div>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            <span class="font-semibold">Payment ID:</span> {{ order.razorpay_payment_id|default:""}}
+                        </p>
+                    </div>
+
+                     <div>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            <span class="font-semibold">Payment Order ID:</span> {{ order.razorpay_order_id|default:""}}
+                        </p>
+                    </div>
+                    {%endif%}
+                    <div>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            <span class="font-semibold">Payment Method:</span> {{ order.payment_method|default:"N/A" }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            <span class="font-semibold">Total Payment:</span>&#8377;{{ order.total_payment|floatformat:2 }}
+                        </p>
+
+                    </div>
+
+                    <div>
+                        <p class="text-gray-600 text-sm sm:text-base">
+                            <span class="font-semibold">Platform Fee:</span> &#8377;50
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+            <!-- Shipping Address -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+                <h2 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-700 mb-4">Shipping Address</h2>
+                {% if order.address %}
+                <p class="text-gray-600 text-sm sm:text-base uppercase">{{ order.address.full_name }}</p>
+                <p class="text-gray-600 text-sm sm:text-base uppercase">{{ order.address.street_address }}</p>
+                <p class="text-gray-600 text-sm sm:text-base uppercase">{{ order.address.city }}, {{ order.address.state }}, {{order.address.postal_code }}</p>
+                <p class="text-gray-600 text-sm sm:text-base uppercase">{{ order.address.country }}</p>
+                <p class="text-gray-600 text-sm sm:text-base uppercase">Contact Number: {{ order.address.alternate_phone_number }}</p>
+                {% else %}
+                <p class="text-gray-600 text-sm sm:text-base">No address provided.</p>
+                {% endif %}
+            </div>
+
+
+            <!-- Order Items -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+                <h2 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-700 mb-4">Items</h2>
+                <div class="space-y-4">
+                    {% for item in order.items.all %}
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center border-b pb-4 gap-3 sm:gap-4">
+                        {% for image in item.product.images.all %}
+                        {% if image.is_primary %}
+                        <img src="{{ image.image }}" alt="{{ item.product.name }}"
+                            class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg">
+                        {% endif %}
+                        {% empty %}
+                        <img src="https://via.placeholder.com/100" alt="No Image"
+                            class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg">
+                        {% endfor %}
+                        <div class="flex-1">
+                            <h3 class="text-sm sm:text-base lg:text-lg font-medium text-gray-800">{{ item.product.name}} ({{item.color}})</h3>
+                            <p class="text-gray-600 text-sm sm:text-base">Product ID: #{{ item.product.id }}</p>
+                            <div class="mt-4">
+                            {% if order.status == "delivered" and item.status != 'Returned' and item.status != 'Return' %}
+                            
+                        <div class="action_btn">
+                            <a href="{%url 'review_url'%}?product_id={{ item.product.id }}" class="bg-black px-5 py-1  text-white rounded-2xl  ">Add Review</a>
+                            <button  data-item_id="{{item.id}}" class=" return-btn bg-red-700 px-5 py-0.5  text-white rounded-2xl">Return</button>
+
+                        </div>
+
+                            {%endif%}
+
+                            </div>
+                         
+                        </div>
+                        <div
+                            class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 text-left sm:text-right">
+                            <div>
+                               
+                                <p id="{{item.id}}_product-p" class="text-gray-600 text-sm sm:text-base {% if not item.status %} hidden {%endif%}" >Status: <span id="product_status_{{item.id}}" class="text-red-600 font-bold">{{ item.status|default:"" }}</span> </p>
+                           
+                                
+                                <p class="text-gray-600 text-sm sm:text-base">Quantity: {{ item.quantity }}</p>
+                                <p class="text-gray-600 text-sm sm:text-base">Price: &#8377;{{ item.price|floatformat:2}}</p>
+                                <p class="text-gray-800 font-semibold text-sm sm:text-base">Total: &#8377;{{item.total_price|floatformat:2 }}</p>
+                            </div>
+                          
+                     
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Status Timeline -->
+            <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+                <h2 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-700 mb-4">Order Status Timeline</h2>
+
+                <div class="relative">
+                    <!-- Timeline Line -->
+                    <div class="absolute h-1 bg-gray-200 w-full top-4 sm:top-5 left-0"></div>
+                    {%if order.status != 'canceled' %}
+                    <div class="w-full max-w-7xl px-4 md:px-5 lg:px-5 mx-auto">
+                        <div class="w-full flex-col justify-start items-start gap-12 inline-flex">
+                            <div class="w-full justify-end items-start gap-8 inline-flex">
+                                <div class="w-full flex-col justify-start items-start gap-8 inline-flex">
+                                    <div
+                                        class="w-full p-8 bg-white rounded-xl flex-col justify-start items-start gap-5 flex">
+                                        <div class="w-full flex-col items-center">
+                                            <ol
+                                                class="flex flex-wrap md:flex-row flex-col md:items-start items-center justify-between w-full md:gap-1 gap-4">
+                                                <li class="group flex relative justify-start">
+                                                    <div
+                                                        class="w-full mr-1 z-10 flex flex-col items-center justify-start gap-1">
+                                                        <div class="justify-center items-center gap-1.5 inline-flex">
+                                                            <h5
+                                                                class="text-center text-gray-900 text-lg font-medium leading-normal">
+                                                                Order Placed</h5>
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20"
+                                                                height="20" viewBox="0 0 20 20" fill="none">
+                                                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                                                    d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                                                                    fill="#047857" />
+                                                            </svg>
+                                                        </div>
+                                                        <h6
+                                                            class="text-center text-gray-500 text-base font-normal leading-relaxed">
+                                                            {{ order.created_at|date:"d M, Y" }}
+                                                        </h6>
+                                                    </div>
+                                                </li>
+                                                <li class="group flex relative justify-start">
+                                                    <div
+                                                        class="w-full mr-1 z-10 flex flex-col items-center justify-start gap-1">
+                                                        <div class="justify-center items-center gap-1.5 inline-flex">
+                                                            <h5
+                                                                class="text-center text-{% if order.status in 'confirmed,pending,shipped,delivered' %}gray-900{% else %}gray-400{% endif %} text-lg font-medium leading-normal">
+                                                                Processing</h5>
+                                                            {% if order.status in 'pending,confirmed,shipped,delivered' %}
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20"
+                                                                height="20" viewBox="0 0 20 20" fill="none">
+                                                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                                                    d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                                                                    fill="#047857" />
+                                                            </svg>
+                                                            {% endif %}
+                                                        </div>
+                                                        <h6
+                                                            class="text-center text-gray-500 text-base font-normal leading-relaxed">
+                                                            {% if order.status in 'confirmed,pending,shipped,delivered' %}{{order.updated_at|date:"d M, Y" }}{% endif %}
+                                                        </h6>
+                                                    </div>
+                                                </li>
+                                                <li class="group flex relative justify-start">
+                                                    <div
+                                                        class="w-full mr-1 z-10 flex flex-col items-center justify-start gap-1">
+                                                        <div class="justify-center items-center gap-1.5 inline-flex">
+                                                            <h5
+                                                                class="text-center text-{% if order.status in 'confirmed,shipped,delivered' %}gray-900{% else %}gray-400{% endif %} text-lg font-medium leading-normal">
+                                                                Confirmed</h5>
+                                                            {% if order.status in 'confirmed,shipped,delivered' %}
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20"
+                                                                height="20" viewBox="0 0 20 20" fill="none">
+                                                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                                                    d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                                                                    fill="#047857" />
+                                                            </svg>
+                                                            {% endif %}
+                                                        </div>
+                                                        <h6
+                                                            class="text-center text-gray-500 text-base font-normal leading-relaxed">
+                                                            {% if order.status in 'confirmed,shipped,delivered' %}{{order.updated_at|date:"d M, Y" }}{% endif %}
+                                                        </h6>
+                                                    </div>
+                                                </li>
+                                                <li class="group flex relative justify-start">
+                                                    <div
+                                                        class="w-full mr-1 z-10 flex flex-col items-center justify-start gap-1">
+                                                        <div class="justify-center items-center gap-1.5 inline-flex">
+                                                            <h5
+                                                                class="text-center text-{% if order.status in 'shipped,delivered'  %}gray-900{% else %}gray-400{% endif %} text-lg font-medium leading-normal whitespace-nowrap">
+                                                                Order Shipped</h5>
+                                                            {% if order.status in 'shipped,delivered'  %}
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20"
+                                                                height="20" viewBox="0 0 20 20" fill="none">
+                                                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                                                    d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                                                                    fill="#047857" />
+                                                            </svg>
+                                                            {% endif %}
+                                                        </div>
+                                                        <h6
+                                                            class="text-center text-gray-500 text-base font-normal leading-relaxed">
+                                                            {% if order.status in 'shipped,delivered' %}{{ order.updated_at|date:"d M, Y" }}{% endif %}
+                                                        </h6>
+                                                    </div>
+                                                </li>
+                                                <li class="group flex relative justify-start">
+                                                    <div
+                                                        class="w-full mr-1 z-10 flex flex-col items-center justify-start gap-1">
+                                                        <div class="justify-center items-center gap-1.5 inline-flex">
+                                                            <h5
+                                                                class="text-center text-{% if  order.status in 'delivered'  %}gray-900{% else %}gray-400{% endif %} text-lg font-medium leading-normal whitespace-nowrap">
+                                                                Order Delivered</h5>
+                                                            {% if order.status in 'delivered'  %}
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="20"
+                                                                height="20" viewBox="0 0 20 20" fill="none">
+                                                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                                                    d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                                                                    fill="#047857" />
+                                                            </svg>
+                                                            {% endif %}
+                                                        </div>
+                                                        <h6
+                                                            class="text-center text-gray-500 text-base font-normal leading-relaxed">
+                                                            {% if order.status in 'delivered'  %}{{order.updated_at|date:"d M, Y" }}{% endif %}
+                                                        </h6>
+                                                    </div>
+                                                </li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {%else%}
+                    <li class="group flex relative justify-start">
+                        <div class="w-full mr-1 z-10 flex flex-col items-center justify-start gap-1">
+                            <div class="justify-center items-center gap-1.5 inline-flex">
+                                <h5
+                                    class="text-center text-{% if order.status == 'canceled' %}gray-900{% else %}gray-400{% endif %} text-lg font-bold leading-normal whitespace-nowrap uppercase">
+                                    {{order.status}}</h5>
+                                {% if order.status == 'canceled' %}
+                                <svg height="20px"  version="1.1" id="Layer_1"
+                                    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    viewBox="0 0 512.001 512.001" xml:space="preserve" fill="#000000">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <path style="fill:#FF6465;"
+                                            d="M256.001,512c141.384,0,255.999-114.615,255.999-256.001C512.001,114.615,397.386,0,256.001,0 S0.001,114.615,0.001,256.001S114.616,512,256.001,512z">
+                                        </path>
+                                        <path style="opacity:0.1;enable-background:new ;"
+                                            d="M68.873,256.001c0-129.706,96.466-236.866,221.564-253.688 C279.172,0.798,267.681,0,256.001,0C114.616,0,0.001,114.615,0.001,256.001S114.616,512.001,256,512.001 c11.68,0,23.171-0.798,34.436-2.313C165.339,492.865,68.873,385.705,68.873,256.001z">
+                                        </path>
+                                        <path style="fill:#FFFFFF;"
+                                            d="M313.391,256.001l67.398-67.398c4.899-4.899,4.899-12.842,0-17.74l-39.65-39.65 c-4.899-4.899-12.842-4.899-17.74,0l-67.398,67.398l-67.398-67.398c-4.899-4.899-12.842-4.899-17.74,0l-39.65,39.65 c-4.899,4.899-4.899,12.842,0,17.74l67.398,67.398l-67.398,67.398c-4.899,4.899-4.899,12.842,0,17.741l39.65,39.65 c4.899,4.899,12.842,4.899,17.74,0l67.398-67.398L323.4,380.79c4.899,4.899,12.842,4.899,17.74,0l39.65-39.65 c4.899-4.899,4.899-12.842,0-17.741L313.391,256.001z">
+                                        </path>
+                                    </g>
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <h6 class="text-center text-gray-500 text-base font-normal leading-relaxed">
+                                {% if order.status == 'canceled' %}{{ order.updated_at|date:"d M, Y" }}{% endif %}
+                            </h6>
+                        </div>
+                    </li>
+
+                    {%endif%}
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+    </div>
+    {% endfor %}
+</div>
+
+
+    <script>
+    function cancel_order(event) {
+        event.preventDefault(); // Prevent the default form submission
+    
+        const form = event.target;
+        const orderId = form.getAttribute("data-order-id");
+
+        Swal.fire({
+            title: 'Cancel Order #' + orderId,
+            text: 'Please provide a reason for canceling this order:',
+                input: 'select',
+                inputOptions: {
+                    'changed_mind': 'Changed my mind',
+                    'better_price': 'Found a better price elsewhere',
+                    'delivery_issue': 'Delivery time too long',
+                    'wrong_item': 'Ordered the wrong item',
+                    'other': 'Other'
+                },
+                inputPlaceholder: 'Select a reason...',
+                inputAttributes: {
+                    'aria-label': 'Cancellation reason'
+                },
+            showCancelButton: true,
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Close',
+            icon: 'warning'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Set the reason in the hidden input
+                const reasonField = form.querySelector('.cancellation-reason');
+                reasonField.value = result.value;
+                
+                // Submit the form after setting the reason
+                form.submit();
+            }
+            
+        });
+    }
+</script>
+
+<script>
+
+document.querySelectorAll('.return-btn').forEach(element=>{
+    element.addEventListener('click',(e)=>{
+e.preventDefault();
+let item_id = e.target.getAttribute("data-item_id");
+let product_para = document.getElementById(`${item_id}_product-p`);
+let product_status = document.getElementById(`product_status_${item_id}`)
+
+Swal.fire({
+            title: 'Reson for the return',
+            text: 'Please provide a reason for returing this order:',
+                input: 'select',
+                inputOptions: {
+                    'Defective Product': 'Product is damaged or defective piece',
+                    'wrong_item': 'Wrong Item Shipped',
+                    'not_as_described': 'Not as Described',
+                    'fit_comfort_issues': 'Fit or Comfort Issues',
+                    'battery_issues': 'Battery Issues',
+                    "others":"Others",
+                },
+                inputPlaceholder: 'Select a reason...',
+                inputAttributes: {
+                    'aria-label': 'Cancellation reason'
+                },
+            showCancelButton: true,
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Close',
+            icon: 'warning'}).then(result=>{
+                if (result.isConfirmed && result.value!='others'){
+
+                    fetch('{% url "return_url" %}',{
+                        method:"post",
+                       
+                        body:JSON.stringify(
+                            {itemid:item_id,reason:result.value}
+                            
+                        )
+                    }).then(response=>{
+                        return response.json()
+                    }).then(data=>{
+                    product_status.innerText="Return";
+                    product_para.classList.remove('hidden');
+                    Swal.fire({
+                        icon: data.status,
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeIn'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOut'
+                        }
+                    });
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }).catch(error=>{
+                        console.log(error)
+                    })
+
+                }
+                
+                else{
+                    console.log(result.value)
+                      Swal.fire({
+                        title: 'Other Reason',
+                        input: 'text',
+                        inputPlaceholder: 'Please enter your reason...',
+                        showCancelButton: true,
+                        confirmButtonText: 'Submit'
+                    }).then(otherResult => {
+                        if (otherResult.isConfirmed && otherResult.value.trim() !== "") {
+
+                             fetch('{% url "return_url" %}',{
+                        method:"post",
+                       
+                        body:JSON.stringify(
+                            {itemid:item_id,reason:otherResult.value}
+                            
+                        )
+                    }).then(response=>{
+                        return response.json()
+                    }).then(data=>{
+                    product_status.innerText="Returned";
+                    product_para.classList.remove('hidden');
+                    Swal.fire({
+                        icon: data.status,
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeIn'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOut'
+                        }
+                    });
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }).catch(error=>{
+                        console.log(error)
+                    })
+                            
+                        }
+                    });
+                }
+
+
+            });
+
+
+
+
+
+    });
+});
+
+</script>
+
+
+{% endblock %}

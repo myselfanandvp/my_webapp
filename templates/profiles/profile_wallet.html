@@ -1,0 +1,211 @@
+{% extends 'shared/profile_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-violet-800 rounded-2xl shadow-2xl shadow-violet-900">
+    <p class="text-center mb-4 text-5xl font-bold uppercase text-white">Wallet</p>
+  <div class="max-w-7xl mx-auto">
+    <!-- Single Row Layout -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <!-- Wallet Balance -->
+      <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+        <h2 class="text-xl sm:text-2xl font-bold font-outfit text-gray-800">Total Balance</h2>
+        <p class="font-outfit font-semibold text-5xl text-gray-900 mt-2">&#8377;<span id="balance">{{wallet.balance_amount}}</span></p>
+       
+      </div>
+
+      <!-- Transaction History -->
+      <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm md:col-span-2 lg:col-span-2">
+        <h2 class="text-xl sm:text-2xl font-bold font-outfit text-gray-800">Transaction History</h2>
+        <!-- Menu -->
+        <ul class="flex justify-between space-x-4 mt-4 border-b border-gray-200 overflow-x-auto">
+          <li>
+            <input type="radio" id="tab1" name="tab" class="hidden" checked>
+            <label for="tab1" class="font-outfit text-sm text-gray-600 cursor-pointer pb-2 border-b-2 border-transparent hover:border-red-500 whitespace-nowrap">Activities</label>
+          </li>
+         
+
+          <li>
+            <input type="radio" id="tab3" name="tab" class="hidden">
+            <label for="tab3" class="font-outfit text-sm text-gray-600 cursor-pointer pb-2 border-b-2 border-transparent hover:border-red-500 whitespace-nowrap">Summary</label>
+          </li>
+          
+        </ul>
+        <!-- Transaction List -->
+        {% if wallet.transactions %}
+          <div class="mt-4 max-h-96 overflow-y-auto">
+            <div class="space-y-4">
+              {% for transaction in wallet.transactions.all %}
+          
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                  <div class="flex items-center space-x-3">
+                    <!-- <div class="flex items-center justify-center w-8 h-8 rounded-full {% if transaction.transaction_type == 'deposit' %}bg-green-400{% else %}bg-red-400{% endif %}">
+                      <i class="fas fa-arrow-up text-sm {% if transaction.transaction_type == 'deposit' %}text-green-400{% else %}text-red-400 rotate-180{% endif %}">
+                      </i>
+                    </div> -->
+                    <div>
+                      <p class="font-outfit text-sm font-medium text-gray-900  {% if transaction.transaction_type in 'deposit,welcome,referral,refund' %}text-green-600{% else %}text-red-600{% endif %}">
+                        {% if transaction.id %}{{transaction.description }}{% else %}Wallet Top-Up{% endif %}
+                      </p>
+                      <p class="font-outfit text-xs text-gray-500">{{transaction.created_at}}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-1 mt-2 sm:mt-0">
+                    <span class="font-outfit text-sm {% if transaction.transaction_type in 'deposit,welcome,referral' %}text-green-600{% else %}text-red-600{% endif %}">
+                      {{transaction_type|capfirst }}:
+                    </span>
+                    <span class="font-outfit text-sm font-medium text-gray-900">{% if transaction.transaction_type in 'deposit,welcome,referral,refund' %}+{%else%}-{%endif%} ₹{{ transaction.amount|floatformat:2 }}</span>
+                  </div>
+                </div>
+               
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+        {% endif %}
+      </div>
+
+      <!-- Manage Funds -->
+      <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+        <h2 class="text-xl sm:text-2xl font-bold font-outfit text-gray-800">Manage Funds</h2>
+        <form action="" class="walletform" method="post" class="mt-4 space-y-4">
+       
+          <div>
+            <label for="amount" class="font-outfit font-medium text-sm text-gray-700">Amount (₹)</label>
+            <input type="number"  id="amount" name="amount" min="1" step="0.01" placeholder="Enter amount" class="w-full p-2 border border-gray-300 rounded-lg font-poppins text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500" required aria-label="Enter amount for top-up or withdrawal">
+          </div>
+          <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mt-4">
+            <button id="rzp-button1" type="submit" name="action" value="add" class="w-full bg-red-500 text-white font-poppins text-xs sm:text-sm py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-colors" aria-label="Add funds to wallet">Add Funds</button>
+            <button type="submit" name="action" value="withdraw" class="w-full bg-blue-500 text-white font-poppins text-xs sm:text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors" aria-label="Withdraw funds from wallet">Withdraw Funds</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+document.querySelector('.walletform').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const btn = e.submitter;
+    const amountInput = form.querySelector('#amount');
+    const amount = amountInput.value;
+    const action = btn.value;
+    const balance = document.getElementById('balance');
+
+    const formData = new FormData(form);
+    formData.append('action', action);
+
+    const url = '{% url "wallet_url" %}';
+
+    fetch(url, {
+        method: "post",
+        body: formData,
+    }).then(response => response.json())
+    .then(data => {
+        if (data.status === "success" && data.action === 'add') {
+            const options = {
+                "key": data.key,
+                "amount": data.amount,
+                "currency": "INR",
+                "name": "WaveLift",
+                "description": "Wallet Transaction",
+                "image": "https://example.com/your_logo",
+                "order_id": data.order_id,
+                "handler": function (response) {
+                    fetch("{% url 'wallet_verify_payment' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            amount: amount
+                        })
+                    }).then(response => response.json())
+                      .then(data => {
+                          if (data.status === "success") {
+                              amountInput.value = '';
+                              balance.innerText = data.balance;
+                           
+                          }
+
+                            Swal.fire({
+                            position: "center",
+                            icon: data.status,
+                            title: data.message,
+                            showConfirmButton: false,
+                            timer: 2000,
+                            toast: true,
+                            width: 'auto',
+                        });
+                        setTimeout(() => {
+                          window.location.href="{% url 'shipping_url' %}"
+                       
+                        }, 2000);
+                        
+                      });
+                },
+                "prefill": {
+                    "name": "{{ request.user.username }}",
+                    "email": "{{ request.user.email }}",
+                    "contact": "{{ request.user.phone_number|default:'' }}"
+                },
+                "notes": {
+                    "address": "Razorpay Corporate Office"
+                },
+                "theme": {
+                    "color": "#3399cc"
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response) { 
+              window.location.href='{% url "payment_failed_url" %}'
+            });
+
+            rzp.open();
+
+
+
+        } else if (data.status === 'success' && data.action === 'withdraw') {
+            amountInput.value = '';
+            balance.innerText = data.balance;
+            Swal.fire({
+                position: "center",
+                icon: data.status,
+                title: data.message,
+                showConfirmButton: false,
+                timer: 1900,
+                toast: true,
+                width: 'auto',
+            });
+            setTimeout(() => {
+              
+              window.location.reload();
+            }, 2000);
+        } else {
+            Swal.fire({
+                position: "center",
+                icon: data.status,
+                title: data.message,
+                showConfirmButton: false,
+                timer: 1900,
+                toast: true,
+                width: 'auto',
+            });
+        }
+    }).catch(error => {
+        console.log(error);
+    });
+});
+</script>
+
+
+{% endblock %}

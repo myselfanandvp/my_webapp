@@ -1,0 +1,397 @@
+
+{% load static %}
+
+<header class="w-full bg-white shadow-lg fixed top-0 left-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+    <div class="flex items-center justify-between flex-wrap ">
+      <!-- Logo -->
+      <div class="text-xl sm:text-2xl font-bold text-gray-800 flex-shrink-0 ">
+        <a href="/">WaveLift</a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button id="nav-toggle" class="md:hidden text-gray-600 focus:outline-none z-50" aria-label="Toggle navigation">
+        <svg class="w-6 h-6 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" class="menu-icon" d="M4 6h16M4 12h16M4 18h16" />
+          <path stroke-linecap="round" stroke-linejoin="round" class="close-icon hidden" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+  
+      <!-- Navigation Links and Search -->
+      <div id="nav-menu"
+        class="hidden  md:flex md:items-center md:w-auto absolute md:static top-full left-0 w-full bg-white md:bg-transparent border-t md:border-0 border-gray-200 transition-all duration-300 ease-in-out">
+        <div
+          class="flex flex-col  md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-6 p-4 md:p-0 text-gray-700 text-sm font-medium ">
+          {% if request.user.is_authenticated %}
+          <a href="{% url 'all_products_url' %}" class="px-4 py-2 md:p-0 hover:text-black transition-colors duration-200">Home</a>
+      {%endif%}
+          <!-- Categories Dropdown
+          <div class="relative group">
+            <button id="categories-btn"
+              class="flex items-center px-4 py-2 md:p-0 hover:text-black transition-colors duration-200">
+              Categories
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="categories-menu"
+              class="hidden group-hover:block absolute md:top-full md:left-0 w-[300px] bg-white border rounded-lg shadow-lg p-4 z-40 transition-opacity duration-200  grid-cols-2 gap-4">
+              Neckbands
+              <a href="#" class="flex items-center space-x-3 hover:bg-gray-300 p-2 rounded">
+                <img src="{% static 'dropdown_images/neckband.png' %}" alt="Neckbands" class="w-10 h-10 object-contain">
+                <span class="text-sm text-gray-800">Neckbands</span>
+              </a>
+              True Wireless Earbuds
+              <a href="#" class="flex items-center space-x-3 hover:bg-gray-300 p-2 rounded">
+                <img src="{% static 'dropdown_images/tws.png' %}" alt="Wireless Earbuds"
+                  class="w-10 h-10 object-contain">
+                <span class="text-sm text-gray-800">True Wireless Earbuds</span>
+              </a>
+              Smart Watches
+              <a href="#" class="flex items-center space-x-3 hover:bg-gray-300 p-2 rounded">
+                <img src="{% static 'dropdown_images/smartwatch.png' %}" alt="Smart Watches"
+                  class="w-10 h-10 object-contain">
+                <span class="text-sm text-gray-800">Smart Watches</span>
+              </a>
+              Wireless Headphones
+              <a href="#" class="flex items-center space-x-3 hover:bg-gray-300 p-2 rounded">
+                <img src="{% static 'dropdown_images/headphone.png' %}" alt="Wireless Headphones"
+                  class="w-10 h-10 object-contain">
+                <span class="text-sm text-gray-800">Wireless Headphones</span>
+              </a>
+              Wired Headphones
+              <a href="#" class="flex items-center space-x-3 hover:bg-gray-300 p-2 rounded">
+                <img src="{% static 'dropdown_images/wired_headphone.png' %}" alt="Wired Headphones"
+                  class="w-10 h-10 object-contain">
+                <span class="text-sm text-gray-800">Wired Headphones</span>
+              </a>
+              Wired Earphones
+              <a href="#" class="flex items-center space-x-3 hover:bg-gray-300 p-2 rounded">
+                <img src="{% static 'dropdown_images/wired_earphone.png' %}" alt="Wired Earphones"
+                  class="w-10 h-10 object-contain">
+                <span class="text-sm text-gray-800">Wired Earphones</span>
+              </a>
+            </div>
+          </div> -->
+
+          <a href="{% url 'about_page' %}" class="px-4 py-2 md:p-0 hover:text-black transition-colors duration-200">About Us</a>
+          <a href="{% url 'contact_page' %}" class="px-4 py-2 md:p-0 hover:text-black transition-colors duration-200">Contact Us</a>
+
+          <!-- More Dropdown -->
+          <div class="relative group">
+            <button id="more-btn"
+              class="flex items-center px-4 py-2 md:p-0 hover:text-black transition-colors duration-200">
+              More
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div id="more-menu"
+              class="hidden group-hover:block absolute md:top-full md:left-0 w-48 bg-white border rounded-lg shadow-lg py-2 z-40 transition-opacity duration-200">
+          
+              <a href="{% url 'carrers_url' %}" class="block px-4 py-2 text-sm hover:bg-gray-300">Careers</a>
+            </div>
+          </div>
+
+          {% if request.user.is_authenticated %}
+
+          <div class="flex">
+
+            <form method="post" action="{% url 'logout_user_url' %}">
+              {%csrf_token%}
+              <button type="submit"
+                class="text-white bg-red-700 hover:bg-red-800 focus:red-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-1">Logout</button>
+            </form>
+
+
+    
+          </div>
+
+
+          <!-- Search & Icons (Mobile) -->
+          <div class="flex flex-col md:hidden space-y-2 pt-2">
+            <div class="flex items-center bg-gray-100 px-2 py-1 rounded-md text-sm text-gray-500 w-full">
+              <input type="search" placeholder="Search..." required
+                class="w-full bg-transparent p-1 text-sm focus:outline-none" />
+              <svg fill="#000000" height="15px" viewBox="0 0 488.4 488.4" class="ml-1 flex-shrink-0">
+                <path
+                  d="M0,203.25c0,112.1,91.2,203.2,203.2,203.2c51.6,0,98.8-19.4,134.7-51.2l129.5,129.5c4.8,4.8,12.5,4.8,17.3,0 s4.8-12.5,0-17.3l-129.6-129.5c31.8-35.9,51.2-83,51.2-134.7c0-112.1-91.2-203.2-203.2-203.2S0,91.15,0,203.25z M381.9,203.25 c0,98.5-80.2,178.7-178.7,178.7S24.5,301.75,24.5,203.25S104.7,24.55,203.2,24.55S381.9,104.65,381.9,203.25z">
+                </path>
+              </svg>
+            </div>
+            <div class="flex items-center gap-4">
+
+
+              <!-- wishlist logo -->
+              <a href="{% url 'wishlist_url' %}">
+                <svg fill="#e01b24" width="20px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 455 455" xml:space="preserve">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M326.632,10.346c-38.733,0-74.991,17.537-99.132,46.92c-24.141-29.383-60.399-46.92-99.132-46.92 C57.586,10.346,0,67.931,0,138.714c0,55.426,33.049,119.535,98.23,190.546c50.162,54.649,104.729,96.96,120.257,108.626l9.01,6.769 l9.009-6.768c15.53-11.667,70.099-53.979,120.26-108.625C421.95,258.251,455,194.141,455,138.714 C455,67.931,397.414,10.346,326.632,10.346z">
+                    </path>
+                  </g>
+                </svg>
+
+              </a>
+
+              <!-- profile logo -->
+
+              <a href="{%url 'user_profile_url' %}">
+                <svg width="20px" viewBox="0 0 128 128" id="Слой_1" version="1.1" xml:space="preserve"
+                  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <style type="text/css">
+                      .st0 {
+                        fill: #FFE0B2;
+                      }
+
+                      .st1 {
+                        fill: #424242;
+                      }
+
+                      .st2 {
+                        fill: #90CAF9;
+                      }
+
+                      .st3 {
+                        fill: #FFFFFF;
+                      }
+                    </style>
+                    <g>
+                      <g>
+                        <circle class="st0" cx="64" cy="33" r="31"></circle>
+                        <path class="st1"
+                          d="M64,66c-18.2,0-33-14.8-33-33S45.8,0,64,0s33,14.8,33,33S82.2,66,64,66z M64,4C48,4,35,17,35,33s13,29,29,29 s29-13,29-29S80,4,64,4z">
+                        </path>
+                      </g>
+                      <path class="st2" d="M126,126c0-34.2-27.8-62-62-62S2,91.8,2,126H126z"></path>
+                      <path class="st1"
+                        d="M126,128H2c-1.1,0-2-0.9-2-2c0-25.9,15.5-48.3,37.7-58.3c8-3.6,17-5.7,26.3-5.7c6.6,0,13,1,19,2.9 c26,8.1,45,32.4,45,61.1C128,127.1,127.1,128,126,128z M4,124h60h60c-0.6-19.4-10.5-36.4-25.3-46.9c-6.1-4.4-13.1-7.6-20.6-9.4 C73.5,66.6,68.8,66,64,66c-5.9,0-11.6,0.9-17,2.4c-5,1.5-9.7,3.6-14,6.2C16.2,84.8,4.7,103.1,4,124z">
+                      </path>
+                    </g>
+                    <path class="st3" d="M56,127"></path>
+                  </g>
+                </svg>
+
+
+              </a>
+
+
+              <!-- cart logo -->
+
+              <a href="{% url 'list_cart_url' %}">
+                <svg width="25px" viewBox="-0.96 -0.96 25.92 25.92" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M7.2998 5H22L20 12H8.37675M21 16H9L7 3H4M4 8H2M5 11H2M6 14H2M10 20C10 20.5523 9.55228 21 9 21C8.44772 21 8 20.5523 8 20C8 19.4477 8.44772 19 9 19C9.55228 19 10 19.4477 10 20ZM21 20C21 20.5523 20.5523 21 20 21C19.4477 21 19 20.5523 19 20C19 19.4477 19.4477 19 20 19C20.5523 19 21 19.4477 21 20Z"
+                      stroke="#2ec27e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </g>
+                </svg>
+              </a>
+
+
+
+            </div>
+          </div>
+            <!-- Search & Icons (Desktop) -->
+      <div class="hidden md:flex items-center gap-2 lg:gap-4 flex-shrink-0">
+        <div class="flex items-center bg-gray-100 px-2 py-1 rounded-md text-sm text-gray-500 w-32 sm:w-40 lg:w-48">
+          <input type="search" placeholder="Search..." required
+            class="w-full bg-transparent p-1 text-sm focus:outline-none" />
+
+          <svg fill="#000000" height="15px" viewBox="0 0 488.4 488.4" class="ml-1 flex-shrink-0">
+            <path
+              d="M0,203.25c0,112.1,91.2,203.2,203.2,203.2c51.6,0,98.8-19.4,134.7-51.2l129.5,129.5c4.8,4.8,12.5,4.8,17.3,0 s4.8-12.5,0-17.3l-129.6-129.5c31.8-35.9,51.2-83,51.2-134.7c0-112.1-91.2-203.2-203.2-203.2S0,91.15,0,203.25z M381.9,203.25 c0,98.5-80.2,178.7-178.7,178.7S24.5,301.75,24.5,203.25S104.7,24.55,203.2,24.55S381.9,104.65,381.9,203.25z">
+            </path>
+          </svg>
+
+
+        </div>
+
+        <!-- wishlist logo -->
+        <a href="{% url 'wishlist_url' %}">
+          <svg fill="#e01b24" width="20px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 455 455" xml:space="preserve">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M326.632,10.346c-38.733,0-74.991,17.537-99.132,46.92c-24.141-29.383-60.399-46.92-99.132-46.92 C57.586,10.346,0,67.931,0,138.714c0,55.426,33.049,119.535,98.23,190.546c50.162,54.649,104.729,96.96,120.257,108.626l9.01,6.769 l9.009-6.768c15.53-11.667,70.099-53.979,120.26-108.625C421.95,258.251,455,194.141,455,138.714 C455,67.931,397.414,10.346,326.632,10.346z">
+              </path>
+            </g>
+          </svg>
+
+        </a>
+
+        <!-- profile logo -->
+
+        <a href="{%url 'user_profile_url' %}">
+          <svg width="20px" viewBox="0 0 128 128" id="Слой_1" version="1.1" xml:space="preserve"
+            xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <style type="text/css">
+                .st0 {
+                  fill: #FFE0B2;
+                }
+
+                .st1 {
+                  fill: #424242;
+                }
+
+                .st2 {
+                  fill: #90CAF9;
+                }
+
+                .st3 {
+                  fill: #FFFFFF;
+                }
+              </style>
+              <g>
+                <g>
+                  <circle class="st0" cx="64" cy="33" r="31"></circle>
+                  <path class="st1"
+                    d="M64,66c-18.2,0-33-14.8-33-33S45.8,0,64,0s33,14.8,33,33S82.2,66,64,66z M64,4C48,4,35,17,35,33s13,29,29,29 s29-13,29-29S80,4,64,4z">
+                  </path>
+                </g>
+                <path class="st2" d="M126,126c0-34.2-27.8-62-62-62S2,91.8,2,126H126z"></path>
+                <path class="st1"
+                  d="M126,128H2c-1.1,0-2-0.9-2-2c0-25.9,15.5-48.3,37.7-58.3c8-3.6,17-5.7,26.3-5.7c6.6,0,13,1,19,2.9 c26,8.1,45,32.4,45,61.1C128,127.1,127.1,128,126,128z M4,124h60h60c-0.6-19.4-10.5-36.4-25.3-46.9c-6.1-4.4-13.1-7.6-20.6-9.4 C73.5,66.6,68.8,66,64,66c-5.9,0-11.6,0.9-17,2.4c-5,1.5-9.7,3.6-14,6.2C16.2,84.8,4.7,103.1,4,124z">
+                </path>
+              </g>
+              <path class="st3" d="M56,127"></path>
+            </g>
+          </svg>
+
+
+        </a>
+
+
+        <!-- cart logo -->
+
+        <a href="{% url 'list_cart_url' %}">
+          <svg width="25px" viewBox="-0.96 -0.96 25.92 25.92" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M7.2998 5H22L20 12H8.37675M21 16H9L7 3H4M4 8H2M5 11H2M6 14H2M10 20C10 20.5523 9.55228 21 9 21C8.44772 21 8 20.5523 8 20C8 19.4477 8.44772 19 9 19C9.55228 19 10 19.4477 10 20ZM21 20C21 20.5523 20.5523 21 20 21C19.4477 21 19 20.5523 19 20C19 19.4477 19.4477 19 20 19C20.5523 19 21 19.4477 21 20Z"
+                stroke="#2ec27e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+          </svg>
+        </a>
+
+
+
+          {% else %}
+          <div class="flex">
+            <a href="{% url 'signup_user_url' %}"
+              class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4  focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-1">Sign
+              up</a>
+
+          </div>
+          <div class="flex">
+            <a href="{% url 'login_user_url' %}"
+              class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-1">Login</a>
+
+          </div>
+
+          {% endif %}
+
+        </div>
+      </div>
+
+    
+
+
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+<!-- templates/dynamic_breadcrumbs/breadcrumbs.html -->
+<nav class=" mt-16 bg-white text-sm font-semibold shadow-md rounded-sm px-4 py-1 hidden lg:flex" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
+        {% for crumb in breadcrumbs %}
+            {% if crumb.position and crumb.url and crumb.resolved %}
+                <li class="inline-flex items-center">
+                    <p  class="text-blue-400 hover:text-blue-900 hover:underline hover:scale-105 transition-all duration-200 ease-in-out">
+                        {{ crumb.name }}
+                    </p>
+                    <span class="mx-2 text-gray-300">/</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</nav>
+
+
+
+<!-- JavaScript for Navigation -->
+<script>
+  const navToggle = document.getElementById('nav-toggle');
+  const navMenu = document.getElementById('nav-menu');
+  const menuIcon = navToggle.querySelector('.menu-icon');
+  const closeIcon = navToggle.querySelector('.close-icon');
+
+  navToggle.addEventListener('click', () => {
+    navMenu.classList.toggle('hidden');
+    menuIcon.classList.toggle('hidden');
+    closeIcon.classList.toggle('hidden');
+  });
+
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+      navMenu.classList.add('hidden');
+      menuIcon.classList.remove('hidden');
+      closeIcon.classList.add('hidden');
+    }
+  });
+
+  // Handle window resize to ensure proper menu state
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768) {
+      navMenu.classList.remove('hidden');
+      menuIcon.classList.remove('hidden');
+      closeIcon.classList.add('hidden');
+    } else {
+      navMenu.classList.add('hidden');
+    }
+  });
+
+  // Handle dropdowns for mobile
+  const categoriesBtn = document.getElementById('categories-btn');
+  const categoriesMenu = document.getElementById('categories-menu');
+  const moreBtn = document.getElementById('more-btn');
+  const moreMenu = document.getElementById('more-menu');
+
+  categoriesBtn.addEventListener('click', (e) => {
+    if (window.innerWidth < 768) {
+      e.preventDefault();
+      categoriesMenu.classList.toggle('hidden');
+      moreMenu.classList.add('hidden');
+    }
+  });
+
+  moreBtn.addEventListener('click', (e) => {
+    if (window.innerWidth < 768) {
+      e.preventDefault();
+      moreMenu.classList.toggle('hidden');
+      categoriesMenu.classList.add('hidden');
+    }
+  });
+
+
+</script>

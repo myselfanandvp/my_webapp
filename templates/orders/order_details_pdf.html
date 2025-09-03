@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Summary #{{ order.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .header-bg {
+            background-color: #1e40af; /* Tailwind blue-800 */
+        }
+        .table-header {
+            background-color: #0284c7; /* Tailwind sky-600 */
+            color: #ffffff;
+        }
+        .table-row-odd {
+            background-color: #f0fdfa; /* Tailwind teal-50 */
+        }
+        .table-row-even {
+            background-color: #ffffff;
+        }
+        .accent-text {
+            color: #047857; /* Tailwind emerald-600 */
+        }
+        .highlight-border {
+            border-color: #7dd3fc; /* Tailwind sky-300 */
+        }
+    </style>
+</head>
+<body class="bg-teal-50 text-gray-800">
+    <div class="max-w-4xl mx-auto p-8 bg-white shadow-2xl rounded-xl my-10">
+        <!-- Header -->
+        <div class="header-bg text-white p-6 rounded-t-xl">
+            <h1 class="text-4xl font-extrabold">Order Summary</h1>
+            <p class="text-lg mt-1">Order #{{ order.id }}</p>
+        </div>
+
+        <!-- Order Details -->
+        <div class="grid grid-cols-2 gap-6 my-8 px-6">
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Order Date</p>
+                <p class="text-base accent-text">{{ order.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Status</p>
+                <p class="text-base capitalize font-medium text-indigo-600">{{ order.status }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Payment Method</p>
+                <p class="text-base accent-text">{{ order.payment_method }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Total Amount</p>
+                <p class="text-base font-bold text-emerald-600">₹{{ order.total_payment }}</p>
+            </div>
+            {% if order.address %}
+            <div class="col-span-2">
+                <p class="text-sm font-semibold text-gray-600">Shipping Address</p>
+                <p class="text-base accent-text">{{ order.address }}</p>
+            </div>
+            {% endif %}
+            {% if order.cancellation_reason %}
+            <div class="col-span-2">
+                <p class="text-sm font-semibold text-gray-600">Cancellation Reason</p>
+                <p class="text-base text-red-600">{{ order.cancellation_reason }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Items Table -->
+        <h2 class="text-2xl font-semibold text-gray-700 px-6 mb-4 ">Order Items</h2>
+        <div class="overflow-x-auto px-6 text-center">
+            <table class="w-full border-collapse bg-blue-100">
+                <thead>
+                    <tr class="table-header">
+                        <th class="border highlight-border p-4 text-left font-semibold">Product</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Quantity</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Status</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Unit Price</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr class="{% cycle 'table-row-odd' 'table-row-even' %}">
+                        <td class="border highlight-border p-4 flex items-center">
+                          {{ item.product.name }} ({{item.color}})
+                        </td>
+                        <td class="border highlight-border p-4">{{ item.quantity }}</td>
+                        <td class="border highlight-border p-4 text-red-600">{{ item.status|default:"" }}</td>
+                        <td class="border highlight-border p-4 accent-text">₹{{ item.price }}</td>
+                        <td class="border highlight-border p-4 font-medium accent-text">₹{{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 border-t-2 highlight-border pt-4 text-center">
+            <p class="text-sm text-gray-600">Thank you for your order!</p>
+            <p class="text-sm text-gray-600">Generated on {{ time|date:"F d, Y" }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class=" flex flex-col  justify-center gap-4 items-center p-4 w-full min-h-screen bg-green-300 ">
+<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js" type="module"></script><dotlottie-wc src="https://lottie.host/4307397f-abe4-47c9-98f5-30bd7a8522b3/vInsH1Ek1x.lottie" speed="1" style="width: 300px; height: 300px" mode="normal" loop autoplay></dotlottie-wc>
+<div class="flex justify-between gap-4  ">
+
+
+<a href="{% url 'orders_url' %}" class="text-black border-2 border-gray-600   font-medium rounded-lg text-sm px-5 py-2.5">VIEW ORDERS</a>
+
+<a href="{% url 'all_products_url' %}" class="text-black   border-2 border-gray-600   font-medium rounded-lg text-sm px-5 py-2.5">CONTINUE SHOPPING</a>
+
+</div>
+</div>
+
+
+
+<!-- SweetAlert for Django messages -->
+{% if messages %}
+<script>
+  {% for message in messages %}
+  Swal.fire({
+    position: "center",
+    icon: "{{ message.tags|default:'success' }}",
+    title: "{{ message|escapejs }}",
+    showConfirmButton: false,
+    timer: 1900,
+    toast: true,
+    width: 'auto',
+    customClass: {
+      popup: 'max-w-[90%] sm:max-w-[400px]'
+    }
+  });
+  {% endfor %}
+</script>
+{% endif %}
+
+
+{%endblock%}

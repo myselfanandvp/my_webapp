@@ -1,0 +1,27 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}404{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 flex justify-center items-center h-screen relative overflow-hidden">
+
+  <!-- Background image -->
+  <div class="absolute inset-0 bg-cover blur-xs bg-center z-0" style="background-image: url('{% static 'app_images/general_images/404-Space.png' %}');"></div>
+
+  <!-- Bottom-aligned overlay content -->
+  <div class="absolute  w-full z-10 text-center px-4 pb-10">
+    <p class="text-red-600 font-bold text-9xl" style="-webkit-text-stroke: 2px rgb(255, 255, 255);">404</p>
+  <h2 class="text-3xl font-bold text-gray-900" style="-webkit-text-stroke: 0.5px rgb(255, 255, 255);">
+  We're sorry, but the page you requested was not found.
+</h2>
+
+    <!-- Buttons -->
+    <div class="mt-7 flex justify-center gap-4 mb-28">
+      <a href="{% url 'index_page' %}" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">Go Home</a>
+      <a href="{% url 'contact_page' %}" class="bg-gray-700 text-gray-200 px-6 py-2 rounded-lg hover:bg-gray-800 transition">Contact Us</a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

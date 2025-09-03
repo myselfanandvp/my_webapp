@@ -1,0 +1,13 @@
+{%if item.status == 'Return' %}
+<form hx-post="{% url 'return_accept_url'%}" hx-target="#return_area_{{item.id}}" hx-swap="innerHTML" class="mt-2" onclick="return confirm('Do you want to accept this return?')">
+    <input type="text" name="itemid" value="{{item.id}}" class="hidden">
+    <input type="text" name="wallet_id" value="{{order.user.wallet.id}}" class="hidden">
+    {% csrf_token %}
+    <button type="submit"
+        class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2">Accept</button>
+</form>
+{%elif item.status == 'Returned' %}
+{{item.status}}
+{%endif%}
+
+

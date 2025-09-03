@@ -1,0 +1,158 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-4 sm:p-6 lg:p-8 font-sans">
+  <div class="max-w-7xl mx-auto">
+    <!-- Page Header -->
+    <div class="flex justify-center items-center mb-8 animate-fade-in">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+        Coupon Management
+      </h1>
+    </div>
+
+    <!-- Add Coupon Form -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-8 border border-gray-100 transform hover:scale-[1.01] transition-transform duration-300 animate-slide-up">
+      <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">Add New Coupon</h2>
+      <p class="text-red-500 mb-4 hidden text-sm sm:text-base" id="error-message">Error messages would appear here</p>
+      <!-- Coupon Creation Form -->
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          {% for field in form %}
+          <div>
+            <label for="{{ field.id_for_label }}" class="block text-sm sm:text-base font-medium text-gray-700">{{ field.label }}</label>
+            <div class="mt-1">
+              {{ field }}
+            </div>
+            {% if field.help_text %}
+            <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+            {% endif %}
+            {% for error in field.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+        <div>
+          <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
+            Create Coupon
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Coupon List -->
+    <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100 transform hover:scale-[1.01] transition-transform duration-300 animate-slide-up overflow-x-auto">
+      <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">Existing Coupons</h2>
+      <table class="w-full table-auto min-w-[640px]">
+        <thead>
+          <tr class="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800">
+            <th class="px-4 py-3 text-center text-sm sm:text-base font-semibold">Code</th>
+            <th class="px-4 py-3 text-center text-sm sm:text-base font-semibold">Discount (%)</th>
+            <th class="px-4 py-3 text-center text-sm sm:text-base font-semibold">Expiry Date</th>
+            <th class="px-4 py-3 text-center text-sm sm:text-base font-semibold">Valid</th>
+            <th class="px-4 py-3 text-center text-sm sm:text-base font-semibold">Status</th>
+            <th class="px-4 py-3 text-center text-sm sm:text-base font-semibold">Use Count</th>
+            <th class="px-4 py-3 text-center text-sm sm:text-base font-semibold">Min Purchase (₹)</th>
+            <th class="px-4 py-3 text-center text-sm sm:text-base font-semibold">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="coupon-table-body">
+          {% for coupon in coupons %}
+          <tr class="text-center border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+            <td class="px-4 py-3 text-sm sm:text-base font-medium text-gray-700">{{ coupon.code }}</td>
+            <td class="px-4 py-3 text-sm sm:text-base text-gray-700">{{ coupon.discount }}</td>
+            <td class="px-4 py-3 text-sm sm:text-base text-gray-700">{{ coupon.expiry_date|date:"d M, Y" }}</td>
+            <td class="px-4 py-3 text-sm sm:text-base">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize
+                {% if coupon.is_valid %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {{ coupon.is_valid|yesno:"Valid,Not Valid" }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm sm:text-base">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize
+                {% if coupon.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                {{ coupon.is_active|yesno:"Active,Not Active" }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-sm sm:text-base text-gray-700">{{ coupon.max_uses_per_user }}</td>
+            <td class="px-4 py-3 text-sm sm:text-base text-gray-700">₹{{ coupon.min_purchase|floatformat:2 }}</td>
+            <td class="px-4 py-3">
+              <div class="flex justify-center items-center gap-2 sm:gap-3">
+                <form method="post" action="{% url 'delete_coupon_url' coupon.id %}">
+                  {% csrf_token %}
+                  <button class="bg-red-600 text-white py-1 px-3 rounded-md hover:bg-red-700 text-sm sm:text-base transition-all duration-200 shadow-sm hover:shadow-md">
+                    Delete
+                  </button>
+                </form>
+                {% if coupon.is_active %}
+                <form method="post" action="{% url 'deactivate_url' %}">
+                  {% csrf_token %}
+                  <input type="hidden" value="{{ coupon.id }}" name="coupon_id">
+                  <button class="bg-red-600 text-white py-1 px-3 rounded-md hover:bg-red-700 text-sm sm:text-base transition-all duration-200 shadow-sm hover:shadow-md">
+                    Deactivate
+                  </button>
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'activate_url' %}">
+                  {% csrf_token %}
+                  <input type="hidden" value="{{ coupon.id }}" name="coupon_id">
+                  <button class="bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-700 text-sm sm:text-base transition-all duration-200 shadow-sm hover:shadow-md">
+                    Activate
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="px-4 py-3 text-sm sm:text-base text-gray-500 text-center italic">No coupons found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SweetAlert for Django Messages -->
+    {% if messages %}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+      {% for message in messages %}
+      Swal.fire({
+        position: "center",
+        icon: "{{ message.tags|default:'success' }}",
+        title: "{{ message|escapejs }}",
+        showConfirmButton: false,
+        timer: 1900,
+        toast: true,
+        width: 'auto',
+        customClass: {
+          popup: 'max-w-[90%] sm:max-w-[400px]'
+        }
+      });
+      {% endfor %}
+    </script>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Custom Animation Styles -->
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+</style>
+{% endblock %}

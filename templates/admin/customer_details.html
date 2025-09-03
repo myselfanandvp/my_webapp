@@ -1,0 +1,307 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex-1 p-4 sm:p-6 md:p-8 bg-gray-100">
+    <div class="flex justify-end items-center gap-2">
+        <a href="{%url 'user_list_url' %}" class=" block-btn px-6 py-2 bg-blue-600 rounded-2xl text-white font-semibold">Go Back</a>
+        <form method="post" class="block-user-form" data-user-id="{{ user.id }}">
+            {% csrf_token %}
+            <button type="submit" id="subbtn"
+                class="block-btn px-6 py-2 bg-red-600 rounded-2xl text-white font-semibold"
+                data-is-active="{{ user.is_active|yesno:'true,false' }}">
+                {{ user.is_active|yesno:"Block,Unblock" }}
+            </button>
+        </form>
+    </div>
+    <div class="max-w-full md:max-w-7xl mx-auto">
+        <!-- Customer Details Header -->
+        <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 md:mb-6">Customer Details</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+            <!-- Left Column: Customer Info -->
+            <div class="lg:col-span-1 bg-white p-4 sm:p-6 rounded-lg shadow">
+                <div class="flex flex-col sm:flex-row items-center mb-4 md:mb-6">
+           
+                         {% if user.profile_img %}
+                        <img src="{{ user.profile_img.url }}" alt="Profile Image"
+                            class="w-12 h-12 sm:w-16 sm:h-16 rounded-full mr-0 sm:mr-4 mb-3 sm:mb-0">
+                        {% else %}
+                        <img src="{% static 'app_images/general_images/No_image.svg.png' %}" alt="Default Profile"
+                            class="w-12 h-12 sm:w-16 sm:h-16 rounded-full mr-0 sm:mr-4 mb-3 sm:mb-0">
+                        {% endif %}
+                    <div>
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900">{{user.username}}</h3>
+
+                        <span id="status"
+                            class="inline-block text-xs sm:text-sm px-2 py-1 rounded text-white bg-black font-bold">{{user.is_active|yesno:'Active,Not Active'}}</span>
+
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                    <div class="flex items-start">
+                        <span class="inline-block p-2 bg-gray-100 rounded mr-2 sm:mr-3">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2">
+                                </path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-500">Customer ID</p>
+                            <p class="text-sm sm:text-base text-gray-900">{{user.id}}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="inline-block p-2 bg-gray-100 rounded mr-2 sm:mr-3">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-500">E-mail</p>
+                            <p class="text-sm sm:text-base text-gray-900">{{user.email}}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="inline-block p-2 bg-gray-100 rounded mr-2 sm:mr-3">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            
+                            {%if user.addresses.all%}
+                            {%for address in user.addresses.all%}
+                            <p class="text-xs sm:text-sm text-gray-500">Address: <span>{{forloop.counter}}</span></p>
+                            
+                            <p class="text-sm sm:text-base text-gray-900">{{address}}</p>
+                            {%endfor%}
+                            {%else%}
+                            <p class="text-sm sm:text-base text-red-900">Not Available</p>
+
+                            {%endif%}
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="inline-block p-2 bg-gray-100 rounded mr-2 sm:mr-3">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                                </path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-500">Phone Number</p>
+                            {%if user.phone_number%}
+                            <p class="text-sm sm:text-base text-gray-900">{{user.phone_number}}</p>
+
+                            {%else%}
+                            <p class="text-sm sm:text-base text-red-900">Not Available</p>
+
+                            {%endif%}
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="inline-block p-2 bg-gray-100 rounded mr-2 sm:mr-3">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                                </path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-500">Last Transaction</p>
+
+                            {%if user.all_transactions.first %}
+                            <p class="text-sm sm:text-base text-gray-900">{{user.all_transactions.first.created_at}}</p>
+
+                            {%else%}
+                            <p class="text-sm sm:text-base text-red-900">Not Available</p>
+
+                            {%endif%}
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="inline-block p-2 bg-gray-100 rounded mr-2 sm:mr-3">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-500">Last Online</p>
+                            <p class="text-sm sm:text-base text-gray-900">{{user.last_login}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Statistics -->
+            <div class="space-y-4 md:space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow flex items-center">
+                        <span class="inline-block p-2 sm:p-3 bg-gray-100 rounded mr-3 sm:mr-4">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                                </path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-500">Total Orders</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900">&#8377; {{total_trans_amount|default:"0.00"}}</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 sm:p-6 rounded-lg shadow flex items-center">
+                        <span class="inline-block p-2 sm:p-3 bg-gray-100 rounded mr-3 sm:mr-4">
+                        <svg fill="#000000" width="20px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12.9494914,6 C13.4853936,6.52514205 13.8531598,7.2212202 13.9645556,8 L17.5,8 C17.7761424,8 18,8.22385763 18,8.5 C18,8.77614237 17.7761424,9 17.5,9 L13.9645556,9 C13.7219407,10.6961471 12.263236,12 10.5,12 L7.70710678,12 L13.8535534,18.1464466 C14.0488155,18.3417088 14.0488155,18.6582912 13.8535534,18.8535534 C13.6582912,19.0488155 13.3417088,19.0488155 13.1464466,18.8535534 L6.14644661,11.8535534 C5.83146418,11.538571 6.05454757,11 6.5,11 L10.5,11 C11.709479,11 12.7183558,10.1411202 12.9499909,9 L6.5,9 C6.22385763,9 6,8.77614237 6,8.5 C6,8.22385763 6.22385763,8 6.5,8 L12.9499909,8 C12.7183558,6.85887984 11.709479,6 10.5,6 L6.5,6 C6.22385763,6 6,5.77614237 6,5.5 C6,5.22385763 6.22385763,5 6.5,5 L10.5,5 L17.5,5 C17.7761424,5 18,5.22385763 18,5.5 C18,5.77614237 17.7761424,6 17.5,6 L12.9494914,6 L12.9494914,6 Z"></path> </g></svg>
+                        </span>
+                        <div>
+                            <p class="text-xs sm:text-sm text-gray-500">Total Balance</p>
+                            <p class="text-xl sm:text-2xl font-semibold text-gray-900">&#8377; {{user.wallet.balance|default:"0.00"}} </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction History -->
+                <div class="bg-white p-4 sm:p-6 rounded-lg shadow mt-4 md:mt-6 col-span-2">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-0">Transaction History
+                        </h3>
+                        <div class="flex space-x-3 sm:space-x-4">
+                            <div class="flex items-center text-gray-500 text-xs sm:text-sm">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3M3 11h18M5 19h14"></path>
+                                </svg>
+                                <span>Select Date</span>
+                            </div>
+                            <div class="flex items-center text-gray-500 text-xs sm:text-sm">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6V4H8v2H5v7h3v-7H4v11h15V8h-3v7h-2v-7h-3V6h3V4h-3v2zm5 5h3m-3 3h3">
+                                    </path>
+                                </svg>
+                                <span>Filters</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm sm:text-base">
+                            <thead>
+                                <tr class="text-gray-900 border-b">
+                                    <th class="py-2 px-2 sm:px-4">Order ID</th>
+                                    <th class="py-2 px-2 sm:px-4">Product</th>
+                                    <th class="py-2 px-2 sm:px-4">Total</th>
+                                    <th class="py-2 px-2 sm:px-4">Status</th>
+                                    <th class="py-2 px-2 sm:px-4">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                {%for tran in user.all_transactions.all%}
+                                <tr class="border-t">
+                                    
+                                  
+                                    <td class="py-3 px-2 sm:px-4 text-purple-600">{{tran.order.id}}</td>
+                                    <td class="py-3 px-2 sm:px-4">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded mr-2 sm:mr-3"></div>
+                                            <div>
+                                                <p class="text-sm sm:text-base">{{tran.order.items.first.product.name}}</p>
+                                                <p class="text-xs text-gray-500">
+                                                   
+                                                    {% if tran.order.items.count|add:"-1" != 0 %}
+                                                    +{{tran.order.items.count|add:"-1"}}
+                                                     other products
+                                                     {%endif%}
+                                                    </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-2 sm:px-4 text-gray-500">&#8377;{{tran.order.total_payment}}</td>
+                                    <td class="py-3 px-2 sm:px-4 capitalize"><span class="text-orange-500">{{tran.order.status}}</span></td>
+                                 
+                                    <td class="py-3 px-2 sm:px-4 text-gray-500">12 Dec 2025</td>
+                                </tr>
+                              
+                               {%endfor%}
+                              
+                              
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const btn = document.getElementById("subbtn");
+    const stats = document.getElementById("status");
+
+    btn.addEventListener('click', (event) => {
+        event.preventDefault();
+
+        // Determine action and message
+        let isBlocking = btn.innerText === "Block";
+        let confirmMessage = isBlocking
+            ? "Are you sure you want to block this user?"
+            : "Are you sure you want to unblock this user?";
+
+        // Show confirmation alert
+        Swal.fire({
+            title: "Are you sure?",
+            text: confirmMessage,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: isBlocking ? "Yes, Block" : "Yes, Unblock"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Proceed with fetch
+                fetch("{% url 'block_admin_url' user.id %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.message);
+
+                    // Toggle button and status text
+                    btn.innerText = isBlocking ? "Unblock" : "Block";
+                    stats.innerText = isBlocking ? "Not Active" : "Active";
+
+                    // Show success alert
+                    Swal.fire({
+                        position: "center",
+                        icon: "success",
+                        title: data.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire("Error", "Something went wrong!", "error");
+                });
+            }
+        });
+    });
+</script>
+
+
+    {% endblock %}

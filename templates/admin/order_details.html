@@ -1,0 +1,160 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+        .header-bg {
+            background-color: #1e40af; /* Tailwind blue-800 */
+        }
+        .table-header {
+            background-color: #0284c7; /* Tailwind sky-600 */
+            color: #ffffff;
+        }
+        .table-row-odd {
+            background-color: #f0fdfa; /* Tailwind teal-50 */
+        }
+        .table-row-even {
+            background-color: #ffffff;
+        }
+        .accent-text {
+            color: #047857; /* Tailwind emerald-600 */
+        }
+        .highlight-border {
+            border-color: #7dd3fc; /* Tailwind sky-300 */
+        }
+        .thumbnail {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 0.375rem; /* Tailwind rounded-md */
+            border: 1px solid #7dd3fc; /* Tailwind sky-300 */
+            margin-right: 0.5rem;
+        }
+        .no-image {
+            width: 40px;
+            height: 40px;
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            border: 1px solid #7dd3fc;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #4b5563; /* Tailwind gray-600 */
+            margin-right: 0.5rem;
+            text-align: center;
+        }
+    </style>
+    
+  <div class="max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-xl">
+        <!-- Header -->
+        <div class="header-bg text-white p-6 rounded-t-xl">
+            <h1 class="text-3xl font-extrabold">Order Details: <span class="text-xl">#{{ order.id }}</span> </h1>
+      
+        </div>
+
+        <!-- Order Details -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 my-8 px-6">
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Order Date</p>
+                <p class="text-base accent-text">{{ order.created_at|date:"F d, Y H:i" }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Last Updated</p>
+                <p class="text-base accent-text">{{ order.updated_at|date:"F d, Y H:i" }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Customer</p>
+                <p class="text-base accent-text">{{ order.user.username }} ({{ order.user.email }})</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Status</p>
+                <p class="text-base capitalize font-medium text-indigo-600">{{ order.status }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Payment Method</p>
+                <p class="text-base accent-text">{{ order.payment_method }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-gray-600">Total Amount</p>
+                <p class="text-base font-bold text-emerald-600">₹{{ order.total_payment }}</p>
+            </div>
+            {% if order.address %}
+            <div class="col-span-1 sm:col-span-2">
+                <p class="text-sm font-semibold text-gray-600">Shipping Address</p>
+                <p class="text-base accent-text">{{ order.address }}</p>
+            </div>
+            {% endif %}
+            {% if order.cancellation_reason %}
+            <div class="col-span-1 sm:col-span-2">
+                <p class="text-sm font-semibold text-gray-600">Cancellation Reason</p>
+                <p class="text-base text-red-600">{{ order.cancellation_reason }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Status Update Form -->
+        <div class="px-6 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Update Order Status</h2>
+            <form action="" method="post" class="flex flex-col sm:flex-row gap-4">
+                {% csrf_token %}
+                <select name="status" class="border highlight-border rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300">
+                    <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                    <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                    <option value="canceled" {% if order.status == 'canceled' %}selected{% endif %}>Canceled</option>
+                </select>
+                <input type="text" class="hidden" hidden value="{{order.id}}" name="orderid">
+                <input type="text" name="cancellation_reason" placeholder="Cancellation reason (if applicable)" class="border highlight-border rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300" value="{{ order.cancellation_reason|default:'' }}">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200">Update Status</button>
+            </form>
+        </div>
+
+        <!-- Items Table -->
+        <h2 class="text-2xl font-semibold text-gray-700 px-6 mb-4">Order Items</h2>
+        <div class="overflow-x-auto px-6">
+            <table class="w-full border-collapse">
+                <thead >
+                    <tr class="table-header">
+                        <th class="border highlight-border p-4 text-center font-semibold">Product</th>
+                        <th class="border highlight-border p-4 text-center font-semibold">Quantity</th>
+                        <th class="border highlight-border p-4 text-center font-semibold">Return</th>
+                        <th class="border highlight-border p-4 text-center font-semibold">Unit Price</th>
+                        <th class="border highlight-border p-4 text-center font-semibold">Total Price</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    {% for item in order.items.all %}
+                    <tr class="{% cycle 'table-row-odd' 'table-row-even' %} hover:bg-blue-50">
+                        <td class="border highlight-border p-4 flex items-center text-justify">
+                            {% with primary_image=item.product.images.first %}
+                                {% if primary_image %}
+                                    <img src="{{ primary_image.image }}" alt="{{ item.product.name }}" class="thumbnail">
+                                {% else %}
+                                    <div class="no-image">No Image</div>
+                                {% endif %}
+                            {% endwith %}
+                            <span>{{ item.product.name }} ({{item.color}})</span>
+                        </td>
+                        <td class="border highlight-border p-4">{{ item.quantity }}</td>
+                        <td id="return_area_{{item.id}}" class="border highlight-border p-4 text-red-600">
+                        <c-return-action/>                         
+                        </td>
+                      
+                        <td class="border highlight-border p-4 accent-text">₹{{ item.price }}</td>
+                        <td class="border highlight-border p-4 font-medium accent-text">₹{{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 border-t-2 highlight-border pt-4 text-center">
+            <p class="text-sm text-gray-600"></p>
+        </div>
+    </div>
+  
+
+{% endblock %}

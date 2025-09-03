@@ -1,0 +1,103 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}WaveLift{% endblock %}</title>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <!-- Static CSS -->
+  <link href="{% static 'dir/style.css' %}" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js"></script>
+  <!-- Spinner removal for number inputs -->
+  <style>
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+
+/* Loading spinner styles */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+      background-image: url('{% static "dir/images/ajax-loader.gif" %}'); /* Replace with your spinner GIF */
+      background-position: center;
+      background-repeat: no-repeat;
+      display: none; /* Hidden by default */
+    }
+
+    #loading.active {
+      display: block; /* Show when active */
+    }
+
+
+
+  </style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+</head>
+
+<body class="bg-gray-200 text-gray-900 flex flex-col min-h-screen">
+<!-- Loading Spinner -->
+  <div id="loading"></div>
+  <!-- Header -->
+
+  {%if not request.user.is_superuser%}
+  <header class="w-full">
+    {% include 'shared/header.html' %}
+  </header>
+
+  {%else%}
+  <header>
+
+    {%include 'shared/admin_header.html' %}
+  </header>
+  {%endif%}
+
+
+
+  <!-- Main Content -->
+  <main class="flex-1 px-2 lg:px-0">
+
+    {% block content %}
+    
+    {% endblock %}
+  </main>
+
+{% if not request.user.is_superuser %}
+  <!-- Footer -->
+  <footer class="w-full">
+    {% include 'shared/footer.html' %}
+
+  </footer>
+
+  
+  {%else%}
+  {%include 'shared/admin_footer.html'%}
+
+
+
+{% endif %}
+
+
+</body>
+
+
+</html>

@@ -1,0 +1,58 @@
+{% extends 'shared/profile_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex flex-col min-h-screen justify-center items-center px-4 py-8 sm:px-6 lg:px-8">
+    <div class="w-full max-w-5xl bg-gray-700 p-6 sm:p-8 rounded-3xl shadow-xl">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Form Section -->
+            <div class="flex flex-col justify-center w-full space-y-6">
+                <div class="text-center">
+                    <h2 class="text-white font-bold text-2xl sm:text-3xl lg:text-4xl">Change Email</h2>
+                    <p class="text-gray-300 mt-2 text-sm sm:text-base">Enter your new email address to update your
+                        account.</p>
+                </div>
+
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}"
+                            class="block mb-2 text-sm sm:text-base font-medium text-white">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                        {%for error in field.errors%}
+                        <p class="text-sm text-red-500 text-center mt-2 font-semibold">{{error}}</p>
+                        {%endfor%}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="flex justify-center">
+                        <button type="submit"
+                            class="text-white w-full sm:w-52 bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm sm:text-base px-5 py-2.5 transition duration-200">
+                            Update Email
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Go Back -->
+                <a href="{% url 'user_profile_url' %}"
+                    class="text-white font-bold hover:text-blue-400 text-center block text-sm sm:text-base">
+                    Go back to profile
+                </a>
+            </div>
+
+            <!-- Image Section -->
+            <div class="flex justify-center w-full h-64 sm:h-80 lg:h-96 lg:mt-0">
+                <div class="relative w-full h-full overflow-hidden rounded-3xl">
+                    <img src="{% static 'app_images/form_images/forgot-password.jpg' %}" alt="Change Email Banner"
+                        class="absolute inset-0 w-full h-full object-cover object-center" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

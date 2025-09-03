@@ -1,0 +1,132 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+
+<div class="flex flex-col lg:flex-row">
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 lg:p-6 overflow-auto transition-all duration-300" id="main-content">
+        <div class="w-full max-w-7xl mx-auto">
+            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                <h2 class="text-lg sm:text-xl  lg:text-2xl font-semibold  text-gray-800">
+                    Customer Management
+                </h2>
+
+
+            </div>
+
+            <form>
+                <div class="flex w-full justify-end">
+                    <button
+                        class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 "
+                        type="submit">Apply Filter</button>
+                    <a class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2"
+                        href="{% url 'user_list_url' %}">Rest Filter</a>
+
+                </div>
+                <div class="flex justify-between gap-2 flex-col lg:flex-row bg-gray-200 mb-4 rounded-2xl p-4">
+                    {%for field in myFilter.form%}
+                    <div class="flex flex-col lg:items-center text-gray-600 ">
+                        <div class=" text-gray-700 px-4 mb-4 rounded-2xl">
+
+                            {{field.label}}
+                        </div>
+                        <div>
+
+                            {{field}}
+                        </div>
+                    </div>
+
+
+
+
+                    {%endfor%}
+                </div>
+
+            </form>
+
+
+
+
+            <!-- Users Table -->
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+                <table class="w-full min-w-[640px] text-center text-sm">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="px-4 py-3">Name</th>
+                            <th class="px-4 py-3">Email</th>
+                    
+                            <th class="px-4 py-3">Status</th>
+                        
+                            <th class="px-4 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {%for user in pages%}
+
+
+                        <tr class="border-b">
+                            <td class="px-4 py-3">{{user.username}}</td>
+                            <td class="px-4 py-3">{{user.email}}</td>
+                      
+
+                            <td class="px-4 py-3">
+                                {%if user.is_active%}
+                                <span class="inline-block px-2 py-1 text-green-600 bg-green-100 rounded-full text-xs">
+
+                                    Active
+                                </span>
+                                {%else%}
+                                <span class="inline-block px-2 py-1 text-red-600 bg-red-100 rounded-full text-xs">
+
+                                    Not Active
+                                </span>
+
+                                {%endif%}
+                            </td>
+
+                            <td class="px-4 py-3">
+                                <div class="flex justify-center gap-2 flex-wrap text-sm">
+                                    <a href="{% url 'user_details_url' user.id %}"
+                                        class="text-green-600 hover:underline">View</a>
+                                    <!-- <form method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:underline">Delete</button>
+                                    </form> -->
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-gray-400  text-lg capitalize">No Customer's Found</td>
+                        </tr>
+                        {%endfor%}
+
+
+
+                    </tbody>
+
+
+
+                </table>
+            </div>
+
+      
+    <div class="flex items-center space-x-2 mt-2 justify-end">
+        <span class="px-3 py-1 text-sm">Page {{ pages.number }} of {{ pages.paginator.num_pages }}</span>
+                    {% if pages.has_previous %}
+                    <a href="?page=1{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}& {{request.GET.urlencode}}" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2">First</a>
+                    <a href="?page={{ pages.previous_page_number }}& {{request.GET.urlencode}}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 ">Previous</a>
+                    {% endif %}
+                    {% if pages.has_next %}
+                    <a href="?page={{ pages.next_page_number }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %} & {{request.GET.urlencode}}" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 ">Next</a>
+                    <a href="?page={{ pages.paginator.num_pages }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}& {{request.GET.urlencode}}" class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 ">Last</a>
+                    {% endif %}
+                </div>
+    </main>
+
+
+</div>
+
+
+{% endblock %}

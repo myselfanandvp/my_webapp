@@ -1,0 +1,121 @@
+
+  <div class="flex mb-24">
+
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform -translate-x-full  transition-transform duration-300 z-50">
+      <div class="flex items-center justify-between p-4">
+        <h1 class="text-xl font-semibold text-gray-800 font-[Poppins]">WaveLift</h1>
+        <button id="close-sidebar" class="focus:outline-none ">
+          <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <nav class="px-4 space-y-1 text-sm">
+        <a href="{% url 'admin_dashboard_url' %}" class="block p-2 rounded-md bg-blue-600 text-white">Dashboard</a>
+        <a href="{%url 'order_list_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Orders</a>
+        <a href="{%url 'all_transctions_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Transcations</a>
+        <a href="{%url 'wallet_transcation_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Wallet</a>
+        <a href="{% url 'salereport_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Sales Report</a>
+        <a href="{%url 'list_products_url'%}" class="block p-2 rounded-md hover:bg-gray-100">Products</a>
+        <a href="{% url 'user_list_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Customer</a>
+        <a href="{%url 'list_category_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Category</a>
+        <a href="{%url 'add_color_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Colors</a>
+        <a href="{% url 'coupon_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Coupon</a>
+        <a href="{% url 'return_items_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Refund/Return</a>
+        <a href="#" class="block p-2 rounded-md hover:bg-gray-100">Banners</a>
+        <a href="{%url 'refferal_url' %}" class="block p-2 rounded-md hover:bg-gray-100">Referrals</a>
+      </nav>
+
+      <div class="p-4 border-t mt-4">
+        <form method="post" action="{% url 'logout_user_url' %}">
+          {% csrf_token %}
+          <button type="submit"
+            class="w-full text-left p-2 rounded-md text-red-600 hover:bg-red-100">Sign Out</button>
+        </form>
+      </div>
+
+      <div class="px-4 py-2 text-xs text-gray-500">
+        © 2025 WaveLift | All Rights Reserved. Your World of Pure Sound.
+      </div>
+    </aside>
+
+    <!-- Dark Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-5 bg-black opacity-80 z-40"></div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col w-full">
+
+      <!-- Navbar -->
+      <header class="bg-white shadow-lg fixed w-full z-30 px-4 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4 ">
+          <button id="open-sidebar" class="focus:outline-none hover:cursor-pointer">
+            <svg class="h-6 w-6 text-gray-700"  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 class="text-xl font-semibold font-[Poppins] text-gray-800">WaveLift</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button class="p-2 rounded-full hover:bg-gray-100 focus:outline-none">
+            <svg width="24" height="24"  fill="none" stroke="#4B5563" viewBox="0 0 24 24">
+              <circle opacity="0.5" cx="12" cy="9" r="3" stroke-width="1.5"></circle>
+              <circle cx="12" cy="12" r="10" stroke-width="1.5"></circle>
+              <path opacity="0.5"
+                d="M17.9691 20C17.81 17.1085 16.9247 15 11.9999 15C7.07521 15 6.18991 17.1085 6.03076 20"
+                stroke-width="1.5" stroke-linecap="round"></path>
+            </svg>
+          </button>
+        </div>
+        
+      </header>
+
+     <!-- templates/dynamic_breadcrumbs/breadcrumbs.html -->
+<nav class=" mt-16 bg-white text-sm font-semibold shadow-md rounded-sm px-4 py-3 hidden lg:flex " aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
+        {% for crumb in breadcrumbs %}
+            {% if crumb.position == 1 or crumb.position == 3 and crumb.url and crumb.resolved %}
+                <li class="inline-flex items-center">
+                    <a href="{{ crumb.url }}" class="text-blue-400 hover:text-blue-900 hover:underline hover:scale-105 transition-all duration-200 ease-in-out">
+                     
+                        {{ crumb.name }}
+                      
+                    </a>
+                    <span class="mx-2 text-gray-300">/</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</nav>
+
+
+  <!-- JavaScript to handle sidebar -->
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const openBtn = document.getElementById('open-sidebar');
+    const closeBtn = document.getElementById('close-sidebar');
+
+    function openSidebar() {
+      sidebar.classList.remove('-translate-x-full');
+      sidebar.classList.add('translate-x-0');
+      overlay.classList.remove('hidden');
+    }
+
+    function closeSidebar() {
+      sidebar.classList.add('-translate-x-full');
+      sidebar.classList.remove('translate-x-0');
+      overlay.classList.add('hidden');
+    }
+
+    openBtn.addEventListener('click', openSidebar);
+    closeBtn.addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+
+    // Close sidebar by default on load
+    document.addEventListener('DOMContentLoaded', closeSidebar);
+  </script>

@@ -1,0 +1,136 @@
+{% extends 'shared/base.html' %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row">
+    <!-- Main Content -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto transition-all duration-300" id="main-content">
+        <div class="w-full max-w-7xl mx-auto">
+            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800">
+                    Category Management
+                </h2>
+                <a href="{% url 'create_category_url' %}"
+                    class="px-4 py-2 text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm">
+                    Add New Category
+                </a>
+            </div>
+
+            <!-- Filter Form -->
+            <form method="get" class="bg-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-md mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {% for field in filter.form %}
+                    <div class="space-y-2">
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ field.errors.as_text }}</p>
+                        {% endif %}
+                        {% if field.help_text %}
+                        <p class="text-gray-500 text-sm mt-1">{{ field.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-6 flex flex-wrap justify-end gap-4">
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm sm:text-base transition-colors">
+                        Apply Filter
+                    </button>
+                    <a href="{% url 'list_category_url' %}"
+                        class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm sm:text-base transition-colors">
+                        Reset Filter
+                    </a>
+                </div>
+            </form>
+
+            <!-- Categories Table -->
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50 text-gray-500 uppercase tracking-wider">
+                        <tr>
+                        
+                            <th class="px-4 py-3 sm:px-6">Name</th>
+                       
+                            <th class="px-4 py-3 sm:px-6">Status</th>
+                           
+                            <th class="px-4 py-3 sm:px-6">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for category in pages %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 sm:px-6">{{ category.name }}</td>
+                    
+                            <td class="px-4 py-3 sm:px-6">
+                                {% if category.status %}
+                                <span
+                                    class="inline-flex items-center px-3 py-1 text-sm font-medium text-green-800 bg-green-100 rounded-full">
+                                    Active
+                                </span>
+                                {% else %}
+                                <span
+                                    class="inline-flex items-center px-3 py-1 text-sm font-medium text-red-800 bg-red-100 rounded-full">
+                                    Inactive
+                                </span>
+                                {% endif %}
+                            </td>
+                     
+                            <td class="px-4 py-3 sm:px-6">
+                                <div class="flex space-x-3">
+                                    <a href="{% url 'edit_category_url' category.id %}"
+                                        class="text-blue-600 hover:underline">Edit</a>
+                                    <form method="post" onsubmit="{return confirm('Do you want to continue?')} "
+                                        action="{%url 'delete_category_url' category.id %}">
+                                        {% csrf_token %}
+                                        <div class="flex w-full justify-evenly">
+                                            {% if category.status %}
+                                            <button type="submit" id="block-btn"
+                                                class="text-red-600 hover:underline">Block</button>
+                                            {%else%}
+                                            <button type="submit" id="unblock-btn"
+                                                class="text-green-600 hover:underline">Unblock</button>
+
+                                            {%endif%}
+
+                                        </div>
+
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-4 py-3 sm:px-6 text-center text-red-500 font-semibold">
+                                No categories match the filter.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex items-center space-x-2 mt-2 justify-end">
+                {% if pages.has_previous %}
+                <a href="?page=1{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}& {{request.GET.urlencode}}"
+                    class="px-3 py-1 border rounded-md hover:bg-gray-100 text-sm">First</a>
+                <a href="?page={{ pages.previous_page_number }}& {{request.GET.urlencode}}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
+                    class="px-3 py-1 border rounded-md hover:bg-gray-100 text-sm">Previous</a>
+                {% endif %}
+                <span class="px-3 py-1 text-sm">Page {{ pages.number }} of {{ pages.paginator.num_pages }}</span>
+                {% if pages.has_next %}
+                <a href="?page={{ pages.next_page_number }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %} & {{request.GET.urlencode}}"
+                    class="px-3 py-1 border rounded-md hover:bg-gray-100 text-sm">Next</a>
+                <a href="?page={{ pages.paginator.num_pages }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}& {{request.GET.urlencode}}"
+                    class="px-3 py-1 border rounded-md hover:bg-gray-100 text-sm">Last</a>
+                {% endif %}
+            </div>
+
+    </main>
+</div>
+
+
+
+
+{% endblock %}

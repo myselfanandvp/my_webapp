@@ -1,0 +1,172 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+
+<div class="flex flex-col lg:flex-row ">
+
+    <!-- Main Content -->
+    <main class="flex-1 p-4 lg:p-6 overflow-auto transition-all duration-300" id="main-content">
+        <div class="w-full max-w-7xl mx-auto">
+            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                <h2 class="text-lg sm:text-xl  lg:text-2xl font-semibold  text-gray-800">
+                    Product Management
+                </h2>
+
+
+            </div>
+            <div class="flex  justify-start">
+
+                <a href="{%url 'create_proudct_url' %}"
+                    class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 ">Add
+                    New Product</a>
+            </div>
+
+            <form>
+                <div class="flex w-full justify-end">
+                    <button
+                        class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 "
+                        type="submit">Apply Filter</button>
+                    <a class="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 "
+                        href="{% url 'list_products_url' %}">Rest Filter</a>
+
+                </div>
+                <div class="flex justify-between gap-2 flex-col lg:flex-row bg-gray-200 mb-4 rounded-2xl p-4">
+                    {%for field in myFilter.form%}
+                    <div class="flex flex-col lg:items-center text-gray-600 ">
+                        <div class=" text-gray-700 px-4 mb-4 rounded-2xl">
+
+                            {{field.label}}
+                        </div>
+                        <div>
+
+                            {{field}}
+                        </div>
+                    </div>
+
+
+
+
+                    {%endfor%}
+                </div>
+    
+            </form>
+
+
+
+
+            <!-- Users Table -->
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+                <table class="w-full min-w-[640px] text-center text-sm">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="px-4 py-3">Product</th>
+                        
+                            <th class="px-4 py-3">Price</th>
+                            <th class="px-4 py-3">Category</th>
+                            <th class="px-4 py-3">Brand</th>
+                            <th class="px-4 py-3">Stock</th>
+                            <th class="px-4 py-3">Active</th>
+                            <th class="px-4 py-3">Added On</th>
+                            <th class="px-4 py-3">Colors</th>
+                            <th class="px-4 py-3">Images</th>
+                            <th class="px-4 py-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {%for product in pages%}
+
+
+                        <tr class="border-b">
+                            <td class="px-4 py-3">{{product.name}}</td>
+                           
+                            <td class="px-4 py-3">{{product.price}}</td>
+                            <td class="px-4 py-3">{{product.category}}</td>
+                            <td class="px-4 py-3">{{product.brand}}</td>
+                            <td class="px-4 py-3">{{product.stock_qty}}</td>
+
+                            <td class="">
+                                {%if not product.is_deleted%}
+                                <span class="inline-block px-2 py-1 text-green-600 bg-green-100 rounded-full text-xs">
+
+                                    Active
+                                </span>
+                                {%else%}
+                                <span class="inline-block px-2 py-1 text-red-600 bg-red-100 rounded-full text-xs">
+
+                                    Not Active
+                                </span>
+
+                                {%endif%}
+                            </td>
+
+                            <td class="px-4 py-3">{{product.created_at}}</td>
+                            <td class="px-4 py-3">
+                                <div class="flex gap-1">
+                                    {% for color in product.colors.all %}
+
+                                    <div class="w-5 h-5 rounded-2xl border-1 border-black border-solid"
+                                        style="background-color: {{color.color}};">
+
+                                    </div>
+
+                                    {% endfor %}
+                                </div>
+
+                            </td>
+
+                            <td class="px-4 py-3">
+                                {% for image in product.images.all %}
+                                {%if image.is_primary%}
+                                <img class="w-12 h-12 mb-3 rounded-full shadow-lg" src="{{ image.image}}" alt="">
+                                {%endif%}
+                                {% endfor %}
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex justify-center gap-2 flex-wrap text-sm">
+                                    <a href="{% url 'edit_products_url' product.id %}"
+                                        class="text-green-600 hover:underline">View</a>
+                                    <!-- <form method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:underline">Delete</button>
+                                    </form> -->
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-gray-400  text-lg">No Product's Found</td>
+                        </tr>
+                        {%endfor%}
+
+
+
+                    </tbody>
+
+
+
+                </table>
+            </div>
+
+
+            <div class="flex items-center space-x-2 mt-2 justify-end">
+                {% if pages.has_previous %}
+                <a href="?page=1{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}& {{request.GET.urlencode}}"
+                    class="px-3 py-1 border rounded-md hover:bg-gray-100 text-sm">First</a>
+                <a href="?page={{ pages.previous_page_number }}& {{request.GET.urlencode}}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}"
+                    class="px-3 py-1 border rounded-md hover:bg-gray-100 text-sm">Previous</a>
+                {% endif %}
+                <span class="px-3 py-1 text-sm">Page {{ pages.number }} of {{ pages.paginator.num_pages }}</span>
+                {% if pages.has_next %}
+                <a href="?page={{ pages.next_page_number }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %} & {{request.GET.urlencode}}"
+                    class="px-3 py-1 border rounded-md hover:bg-gray-100 text-sm">Next</a>
+                <a href="?page={{ pages.paginator.num_pages }}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}& {{request.GET.urlencode}}"
+                    class="px-3 py-1 border rounded-md hover:bg-gray-100 text-sm">Last</a>
+                {% endif %}
+            </div>
+    </main>
+
+
+</div>
+
+
+{% endblock %}

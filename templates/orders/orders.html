@@ -1,0 +1,167 @@
+{% extends 'shared/profile_base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container mx-auto px-4 py-6 sm:py-8">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Search Bar -->
+        <div class="mb-6">
+            <input type="text" id="orderSearch" class="w-full p-3 border rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search orders by ID, status, or payment method..." aria-label="Search orders">
+        </div>
+
+        <!-- Display Messages -->
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="p-3 sm:p-4 mb-4 text-sm rounded-lg
+                        {% if message.tags == 'success' %}bg-green-100 text-green-700{% endif %}
+                        {% if message.tags == 'error' %}bg-red-100 text-red-700{% endif %}
+                        {% if message.tags == 'info' %}bg-blue-100 text-blue-700{% endif %}"
+                        role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Order List -->
+        <div class="flex flex-col gap-6 sm:gap-8" id="orderList">
+            {% for order in orders %}
+                <!-- Single Order -->
+                <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 order-item" data-order-id="{{ order.id }}" data-status="{{ order.status|lower }}" data-payment-method="{{ order.payment_method|lower }}">
+                    <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-4 gap-4">
+                        <h2 class="text-sm sm:text-lg lg:text-xl font-bold text-gray-800">Order #{{ order.id }}</h2>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            {%if order.status in 'confirmed,pending,shipped' %}
+                                <form action="{% url 'orders_url' %}" method="POST" data-order-id="{{ order.id }}" class="w-full sm:w-auto" onsubmit="cancel_order(event)">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                                    <input type="hidden" name="cancellation_reason" class="cancellation-reason">
+                                    <button type="submit" class="w-full sm:w-auto bg-red-500 text-white px-4 py-1.5 rounded-md hover:bg-red-600 transition duration-200 hover:cursor-pointer" aria-label="Cancel Order #{{ order.id }}">Cancel Order</button>
+                                </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'order_detail_url' %}">
+                                {% csrf_token %}
+                                <input type="text" class="hidden" name="orderid" value="{{ order.id }}">
+                                <button type="submit" class="w-full sm:w-auto text-center border-2 border-blue-500 bg-blue-400 text-white px-4 py-1 rounded-md hover:bg-blue-500 transition duration-200" aria-label="View Details for Order #{{ order.id }}">
+                                    View Details
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                        <div>
+                            <p class="text-gray-600 text-sm sm:text-base"><span class="font-semibold">Status:</span> {{ order.status }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm sm:text-base"><span class="font-semibold">Payment Method:</span> {{ order.payment_method }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm sm:text-base"><span class="font-semibold">Total Payment:</span>&#8377;{{ order.total_payment|floatformat:2 }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="border-t pt-3 sm:pt-4">
+                        <h3 class="text-base sm:text-lg lg:text-xl font-semibold text-gray-700 mb-3 sm:mb-4">Items</h3>
+                        <div class="space-y-4">
+                            {% for item in order.items.all %}
+                                <!-- Single Item -->
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center border-b pb-4 gap-3 sm:gap-4">
+                                    {% for image in item.product.images.all %}
+                                        {% if image.is_primary %}
+                                            <img src="{{ image.image }}" alt="{{ item.product.name }}" class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg">
+                                        {% endif %}
+                                    {% empty %}
+                                        <img src="https://via.placeholder.com/100" alt="No Image" class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg">
+                                    {% endfor %}
+                                    <div class="flex-1">
+                                        <h4 class="text-sm sm:text-base lg:text-lg font-medium text-gray-800">{{ item.product.name }} {%if item.color%} ({{item.color}}) {%endif%}</h4>
+                                        <p class="text-gray-600 text-sm sm:text-base">Product ID: #{{ item.product.id }}</p>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <p class="text-gray-600 text-sm sm:text-base">Quantity: {{ item.quantity }}</p>
+                                        <p class="text-gray-600 text-sm sm:text-base">Price: &#8377;{{ item.price|floatformat:2 }}</p>
+                                        <p class="text-gray-800 font-semibold text-sm sm:text-base">Total: &#8377;{{ item.total_price|floatformat:2 }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+                    <p class="text-gray-600 text-sm sm:text-base lg:text-lg">No orders found.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+    function cancel_order(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        const form = event.target;
+        const orderId = form.getAttribute("data-order-id");
+
+        Swal.fire({
+            title: 'Cancel Order #' + orderId,
+            text: 'Please provide a reason for canceling this order:',
+            input: 'select',
+            inputOptions: {
+                'changed_mind': 'Changed my mind',
+                'better_price': 'Found a better price elsewhere',
+                'delivery_issue': 'Delivery time too long',
+                'wrong_item': 'Ordered the wrong item',
+                'other': 'Other'
+            },
+            inputPlaceholder: 'Select a reason...',
+            inputAttributes: {
+                'aria-label': 'Cancellation reason'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Submit',
+            cancelButtonText: 'Close',
+            icon: 'warning'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Set the reason in the hidden input
+                const reasonField = form.querySelector('.cancellation-reason');
+                reasonField.value = result.value;
+
+                // Submit the form after setting the reason
+                form.submit();
+            }
+        });
+    }
+
+    // Search functionality
+    document.getElementById('orderSearch').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const orderItems = document.querySelectorAll('.order-item');
+        
+        orderItems.forEach(item => {
+            const orderId = item.getAttribute('data-order-id');
+            const status = item.getAttribute('data-status');
+            const paymentMethod = item.getAttribute('data-payment-method');
+            
+            if (orderId.includes(searchTerm) || 
+                status.includes(searchTerm) || 
+                paymentMethod.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Show/hide "No orders found" message
+        const noOrdersMessage = document.querySelector('#orderList .text-center');
+        if (noOrdersMessage) {
+            const visibleOrders = Array.from(orderItems).filter(item => item.style.display !== 'none');
+            noOrdersMessage.style.display = visibleOrders.length === 0 ? 'block' : 'none';
+        }
+    });
+    </script>
+
+{% endblock %}

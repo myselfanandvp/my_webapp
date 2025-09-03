@@ -1,0 +1,40 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="flex flex-col justify-center gap-4 items-center p-4 w-full min-h-screen bg-red-500">
+   <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js" type="module"></script>
+<dotlottie-wc src="https://lottie.host/dfb4a480-8232-472e-b895-cf64b3021e9c/i0MmI1zNGL.lottie" style="width: 300px;height: 300px" speed="1" autoplay loop></dotlottie-wc>  <h1 class="text-2xl font-bold text-red-100">Payment Failed</h1>
+    <p class="text-black text-center">We're sorry, your payment could not be processed. Please try again or contact support if the issue persists.</p>
+    <div>
+    
+<a href="{% url 'list_cart_url' %}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">Back to checkout</a>
+
+    </div>
+
+</div>
+
+
+
+<!-- SweetAlert for Django messages -->
+{% if messages %}
+<script>
+  {% for message in messages %}
+  Swal.fire({
+    position: "center",
+    icon: "{{ message.tags|default:'error' }}",
+    title: "{{ message|escapejs }}",
+    showConfirmButton: false,
+    timer: 1900,
+    toast: true,
+    width: 'auto',
+    customClass: {
+      popup: 'max-w-[90%] sm:max-w-[400px]'
+    }
+  });
+  {% endfor %}
+</script>
+{% endif %}
+
+
+{% endblock %}

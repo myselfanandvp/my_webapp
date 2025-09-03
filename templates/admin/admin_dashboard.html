@@ -1,0 +1,242 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
+  <!-- Dashboard Header -->
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
+    <div class="hidden" hx-get="{% url 'admin_dashboard_url' %}" hx-target="#summary_card" hx-trigger="every 60s"></div>
+    <div id="summary_card">
+      <c-admin-summary-card/>
+
+    </div>
+
+    <!-- Transaction Details Modal -->
+    <div id="transactionModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+      <div class="relative top-20 mx-auto p-5 border w-11/12 sm:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold text-gray-900">Transaction Details</h3>
+          <button onclick="closeTransactionModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
+        </div>
+        <div id="transactionDetails">
+          {% for transaction in transactions %}
+          <div id="transaction-{{ transaction.id }}" class="hidden">
+            <p><strong>User Details:</strong> {{ transaction.user.username }} ({{ transaction.user.email }})</p>
+            <p><strong>Transaction ID:</strong> {{ transaction.id }}</p>
+            <p><strong>Date:</strong> {{ transaction.date|date:"Y-m-d H:i" }}</p>
+            <p><strong>Type:</strong> {{ transaction.type }}</p>
+            <p><strong>Amount:</strong> ₹{{ transaction.amount|floatformat:2 }}</p>
+            {% if transaction.source_order %}
+            <p><strong>Source:</strong> {{ transaction.source_order.reason }} (Order #{{ transaction.source_order.id }})</p>
+            <a href="{% url 'order_detail' transaction.source_order.id %}" class="inline-block mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">View Order Details</a>
+            {% else %}
+            <p><strong>Source:</strong> Manual/Wallet Top-up</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Transaction Trends</h2>
+      <form method="post" id="chartForm" action="{% url 'chart_url' %}" class="flex items-center mb-4">
+        {% csrf_token %}
+        <label for="chartFilter" class="mr-2 text-sm font-medium text-gray-700">Filter:</label>
+        <select name="filter" id="chartFilter" class="p-2 border border-gray-300 rounded-lg">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+        <button type="submit" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Filter</button>
+      </form>
+      <canvas id="transactionChart" class="w-full max-h-96"></canvas>
+    </div>
+
+    <!-- Best Selling Sections -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Best Selling Products -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Top 10 Best Selling Products</h2>
+        <ul class="space-y-2">
+          {% for product in top_products %}
+          <li class="flex justify-between text-sm">
+            <span class="capitalize">{{ product.product__name }}</span>
+            <span>{{ product.total_sold }} sold</span>
+          </li>
+          {% empty %}
+          <li class="text-sm text-gray-500">No products found</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Best Selling Categories -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Top 10 Best Selling Categories</h2>
+        <ul class="space-y-2">
+          {% for category in top_categories %}
+          <li class="flex justify-between text-sm">
+            <span class="capitalize">{{ category.product__category__name }}</span>
+            <span>{{ category.total_sold }} sold</span>
+          </li>
+          {% empty %}
+          <li class="text-sm text-gray-500">No categories found</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Best Selling Brands -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Top 10 Best Selling Brands</h2>
+        <ul class="space-y-2">
+          {% for brand in top_brands %}
+          <li class="flex justify-between text-sm">
+            <span class="capitalize">{{ brand.product__brand__name }}</span>
+            <span>{{ brand.total_sold }} sold</span>
+          </li>
+          {% empty %}
+          <li class="text-sm text-gray-500">No brands found</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js for Transaction Trends -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  let transactionChart = null;
+  const transactionCanvas = document.getElementById('transactionChart').getContext('2d');
+
+  // Function to format labels based on filter type
+  function formatLabels(data, filter) {
+    if (!data || !Array.isArray(data)) return [];
+
+    if (filter === 'yearly') {
+      return data.map(item => item.year || 'Unknown');
+    } else if (filter === 'monthly') {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return data.map(item => monthNames[(item.month || 1) - 1] || 'Unknown');
+    } else if (filter === 'weekly') {
+      return data.map(item => `Week ${item.week || 'Unknown'}`);
+    } else if (filter === 'daily') {
+      return data.map(item => item.day ? new Date(item.day).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown');
+    }
+    return [];
+  }
+
+  // Function to update the chart
+  function updateChart(filter, data) {
+    if (transactionChart) {
+      transactionChart.destroy();
+    }
+
+    // Fallback for empty or invalid data
+    const labels = formatLabels(data, filter);
+    const salesData = data && Array.isArray(data) ? data.map(item => item.total_sales || 0) : [];
+    const isEmpty = labels.length === 0 || salesData.every(val => val === 0);
+    const total_amount = data.reduce((acc, item) => acc + Number(item.total_sales), 0).toFixed(2);
+
+    transactionChart = new Chart(transactionCanvas, {
+      type: 'line',
+      data: {
+        labels: isEmpty ? ['No Data'] : labels,
+        
+        datasets: [{
+        
+          label: `Total Sales (₹) ${total_amount}`,
+          data: isEmpty ? [0] : salesData,
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: isEmpty ? 'No Sales Data Available' : `Sales Trend (${filter.charAt(0).toUpperCase() + filter.slice(1)})`
+          },
+          tooltip: {
+            enabled: !isEmpty,
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                let value = context.raw || 0;
+                return `${label}: ₹${value.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: `Sales Amount (₹) `,
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Time'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Function to fetch chart data
+  async function fetchChartData(filter) {
+    const formData = new FormData(document.getElementById('chartForm'));
+    formData.set('filter', filter); // Ensure the filter value is set
+    try {
+      const response = await fetch('{% url "chart_url" %}', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      console.log(data)
+      if (data.error) {
+        console.error('Server error:', data.error);
+        updateChart(filter, []); // Show empty chart on error
+        return;
+      }
+      updateChart(data.filter, data.results);
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+      updateChart(filter, []); // Show empty chart on error
+    }
+  }
+
+  // Form submission handler
+  document.getElementById('chartForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const filter = document.getElementById('chartFilter').value;
+    await fetchChartData(filter);
+  });
+
+  // Initialize chart with default filter (yearly) when DOM is loaded
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchChartData('daily');
+  });
+</script>
+
+{% endblock %}

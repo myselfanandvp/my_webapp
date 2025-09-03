@@ -1,0 +1,101 @@
+{% extends 'shared/profile_base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="flex justify-center items-center min-h-screen px-4 py-8 ">
+    <div class="grid grid-cols-1 md:grid-cols-1 bg-gray-700 p-6 gap-6 rounded-3xl shadow-xl w-full max-w-5xl">
+        <!-- Referral Content Section -->
+        <div class="flex flex-col justify-center w-full space-y-6">
+            <div class="text-center mb-4">
+                <h1 class="text-white font-bold text-3xl md:text-4xl">Refer & Earn</h1>
+                <p class="text-gray-300 text-lg mt-2">Invite your friends and track your rewards!</p>
+            </div>
+
+            <!-- Referral Code Section -->
+            <div class="flex flex-col items-center space-y-4">
+                <label class="block text-sm font-medium text-gray-300">Your Referral Code</label>
+                <div class="relative w-full max-w-xs">
+                    <input type="text" value="{{ user.referral_code|default:'CODE123' }}" readonly
+                        class="w-full bg-gray-800 border border-gray-600 rounded-lg p-2 text-white text-center font-mono text-lg focus:outline-none">
+                    <button onclick="copyToClipboard('{{ user.referral_code|default:'CODE123' }}')"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-200">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-sm text-gray-400">Click to copy your unique referral code</p>
+            </div>
+
+          
+
+            <!-- Referred Users Table -->
+            <div class="flex flex-col space-y-4">
+                <div class="text-center">
+                    <p class="text-gray-300 text-lg font-medium">Total Earnings</p>
+                    <p class="text-blue-300 text-2xl font-bold">₹{{ total_earnings|floatformat:2|default:'0.00' }}</p>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-gray-300 text-lg font-medium">Users Signed Up with Your Code</p>
+                </div>
+
+                {% if referred_users %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-300">
+                        <thead class="text-xs text-gray-400 uppercase bg-gray-800">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Username</th>
+                                <th scope="col" class="px-6 py-3">Email</th>
+                                <th scope="col" class="px-6 py-3">Signup Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in referred_users %}
+                            <tr class="bg-gray-700 border-b border-gray-600 hover:bg-gray-600">
+                                <td class="px-6 py-4">{{ user.referred.username|default:'N/A' }}</td>
+                                <td class="px-6 py-4">{{ user.referred.email|default:'N/A' }}</td>
+                                <td class="px-6 py-4">{{ user.referred.created_at|date:"M d, Y"|default:'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-gray-400">No users have signed up with your referral code yet.</p>
+                {% endif %}
+            </div>
+
+         
+<!-- Rewards Information -->
+<div class="text-center">
+    <p class="text-gray-300 text-sm">
+        Earn <span class="font-bold text-blue-300">₹1000</span> in your wallet for each friend who signs up using your code!
+    </p>
+    <p class="text-gray-400 text-sm mt-2">
+        Your friends will also get <span class="font-bold text-blue-300">₹500</span> added to their wallet.
+    </p>
+</div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "Your work has been saved",
+            showConfirmButton: false,
+            timer: 1500
+            });
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+
+ 
+</script>
+{% endblock %}

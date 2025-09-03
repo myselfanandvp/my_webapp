@@ -1,0 +1,38 @@
+{% extends 'shared/base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center p-6">
+    <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8 transform transition-all hover:shadow-2xl">
+        <h1
+            class="text-4xl font-extrabold text-gray-900 mb-8 text-center bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">
+            Add a Color
+        </h1>
+        <form method="post" class="space-y-6 flex justify-center items-center flex-col">
+            {% csrf_token %}
+            <div class="flex flex-col space-y-4">
+                {{ form.as_p }}
+            </div>
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition duration-300 transform hover:scale-105">
+                Submit
+            </button>
+
+
+        </form>
+
+        <h2 class="text-2xl font-semibold text-gray-800 mt-10 mb-6">Existing Colors</h2>
+        <div class="grid lg:grid-cols-5 grid-cols-2">
+            {% for color in colors %}
+            <div class="flex gap-2 ">
+                <div class="w-5 border-1 border-solid border-b-blue-600 h-5 rounded-lg shadow-xl hover:shadow-2xl transition duration-300 transform hover:scale-110"
+                    style="background-color: {{ color.color }};" title="{{ color.name }} ({{ color.color }})"></div>
+                <div>{{color.name}}</div>
+            </div>
+
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

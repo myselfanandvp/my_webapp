@@ -1,0 +1,137 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .header-bg {
+            background-color: #000000; /* Tailwind blue-800 */
+        }
+        .table-header {
+            background-color: #1e1e1e; /* Tailwind sky-600 */
+            color: #ffffff;
+        }
+        .table-row-odd {
+            background-color: #f0fdfa; /* Tailwind teal-50 */
+        }
+        .table-row-even {
+            background-color: #ffffff;
+        }
+        .accent-text {
+            color: #047857; /* Tailwind emerald-600 */
+        }
+        .highlight-border {
+            border-color: #7dd3fc; /* Tailwind sky-300 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="max-w-7xl mx-auto p-6 bg-white shadow-lg rounded-xl my-8">
+        <!-- Header -->
+        <div class="header-bg text-white p-6 rounded-t-xl">
+            <h1 class="text-3xl font-extrabold uppercase text-center">Orders</h1>
+            <!-- <p class="text-base mt-1">Admin Dashboard - Manage all website orders</p> -->
+        </div>
+
+        <!-- Filter Form -->
+        <div class="px-6 py-4">
+            <form method="get" class="flex flex-col sm:flex-row gap-4 items-center">
+             <label for="">{{filter.form.status.label}}</label> 
+                    {{filter.form.status}}
+             <label for="">{{filter.form.id.label}}</label> 
+
+                   {{filter.form.id}}
+                      <label for="">{{filter.form.user__email.label}}</label> 
+
+                   {{filter.form.user__email}}
+                <!-- <input type="text" name="search" placeholder="Search by Order ID or Customer" value="{{ request.GET.search }}" class="border highlight-border rounded-md px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-300"> -->
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200">Apply Filter</button>
+                <a href="{% url 'order_list_url' %}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-200">Clear Filter</a>
+            </form>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="overflow-x-auto px-6">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="table-header">
+                        <th class="border highlight-border p-4 text-left font-semibold">Order ID</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Customer</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Date</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Status</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Total</th>
+                        <th class="border highlight-border p-4 text-left font-semibold">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="{% cycle 'table-row-odd' 'table-row-even' %} hover:bg-blue-50">
+                        <td class="border highlight-border p-4">{{ order.id }}</td>
+                        <td class="border highlight-border p-4">{{ order.user.username }} ({{ order.user.email }})</td>
+                        <td class="border highlight-border p-4 accent-text">{{ order.created_at|date:"F d, Y H:i" }}</td>
+                        <td class="border highlight-border p-4">
+                            <span class="capitalize font-medium {% if order.status == 'delivered' %}text-green-600{% elif order.status == 'canceled' %}text-red-600{% else %}text-indigo-600{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td class="border highlight-border p-4 accent-text">₹{{ order.total_payment }}</td>
+                        <td class="border highlight-border p-4">
+                            <form method="get" action="{%url 'order_details_url'%}">
+                                <input type="text" class="hidden"  hidden value="{{order.id}}" name="orderid" >
+                                <button type="submit">View Details</button>
+                            </form>
+                            <!-- <a href="{% url 'order_details_url' %}"class="text-blue-600 hover:text-blue-800 font-medium">View Details</a> -->
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="border highlight-border p-4 text-center text-gray-600">No orders found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+ <!-- Pagination -->
+        {% if orders.has_other_pages %}
+        <div class="mt-4 sm:mt-6 px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+          
+            <div class="flex gap-2">
+                {% if orders.has_previous %}
+                <a href="?page=1{% if filter.form.data.id %}&id={{ filter.form.data.id }}{% endif %}{% if filter.form.data.user__email %}&user__email={{ filter.form.data.user__email }}{% endif %}{% if filter.form.data.status %}&status={{ filter.form.data.status }}{% endif %}" class="bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-md hover:bg-blue-700 text-sm">First</a>
+                <a href="?page={{ orders.previous_page_number }}{% if filter.form.data.id %}&id={{ filter.form.data.id }}{% endif %}{% if filter.form.data.user__email %}&user__email={{ filter.form.data.user__email }}{% endif %}{% if filter.form.data.status %}&status={{ filter.form.data.status }}{% endif %}" class="bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-md hover:bg-blue-700 text-sm">Previous</a>
+                {% endif %}
+                <span class="px-3 py-1 text-sm">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+                {% if orders.has_next %}
+                <a href="?page={{ orders.next_page_number }}{% if filter.form.data.id %}&id={{ filter.form.data.id }}{% endif %}{% if filter.form.data.user__email %}&user__email={{ filter.form.data.user__email }}{% endif %}{% if filter.form.data.status %}&status={{ filter.form.data.status }}{% endif %}" class="bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-md hover:bg-blue-700 text-sm">Next</a>
+                <a href="?page={{ orders.paginator.num_pages }}{% if filter.form.data.id %}&id={{ filter.form.data.id }}{% endif %}{% if filter.form.data.user__email %}&user__email={{ filter.form.data.user__email }}{% endif %}{% if filter.form.data.status %}&status={{ filter.form.data.status }}{% endif %}" class="bg-blue-600 text-white px-2 sm:px-3 py-1 rounded-md hover:bg-blue-700 text-sm">Last</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+       
+    </div>
+    <!-- SweetAlert for Django messages -->
+            {% if messages %}
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+                {% for message in messages %}
+                Swal.fire({
+                    position: "center",
+                    icon: "{{ message.tags|default:'success' }}",
+                    title: "{{ message|escapejs }}",
+                    showConfirmButton: false,
+                    timer: 1900,
+                    toast: true,
+                    width: 'auto',
+                    customClass: {
+                        popup: 'max-w-[90%] sm:max-w-[400px]'
+                    }
+                });
+                {% endfor %}
+            </script>
+            {% endif %}
+
+{% endblock %}

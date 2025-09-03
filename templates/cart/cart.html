@@ -1,0 +1,214 @@
+{% extends 'shared/base.html' %}
+{% block content %}
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl min-h-screen">
+    <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-900 font-inter mb-8">Your Cart</h1>
+
+    {% if cart %}
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-2">
+        <!-- Cart Items -->
+        <div class="lg:col-span-3 bg-white shadow-xl rounded-lg overflow-hidden">
+            <!-- Desktop Header -->
+            <div class="hidden lg:grid lg:grid-cols-5 gap-4 bg-blue-700 text-white font-semibold font-inter p-4">
+                <div class="text-center">Image</div>
+                <div class="text-center">Product</div>
+                <div class="text-center">Price</div>
+                <div class="text-center">Quantity</div>
+                <div class="text-center">Action</div>
+            </div>
+            <!-- Cart Items -->
+            {% for item in cart %}
+            <div
+                class="grid grid-cols-1  lg:grid-cols-5 gap-4 p-4 border-b border-gray-200 items-center hover:bg-gray-50 transition">
+                <!-- Image -->
+                <div class="flex justify-center">
+
+                    {% for image in item.product.images.all %}
+                    {% if image.is_primary %}
+                    <a href="{%url 'product_detail_url' item.product.id %}">
+
+                        <img src="{{ image.image }}" alt="{{ item.product.name }}"
+                            class="w-20 h-20 object-cover rounded-lg">
+                    </a>
+
+                    {% endif %}
+                    {% endfor %}
+
+                </div>
+                <!-- Product Details -->
+                <div class="text-center lg:text-center  font-inter">
+                    <a href="{%url 'product_detail_url' item.product.id %}" class="text-blue-600 underline">
+
+
+                        <p class="text-lg font-mediu">{{ item.product.name }} ({{item.color}})</p>
+                    </a>
+
+                    <p class="text-sm text-gray-600">In stock</p>
+                    <p class="text-sm text-green-600">Free Delivery</p>
+                </div>
+                <!-- Price -->
+                <div class="text-center lg:text-center text-gray-900 font-inter">
+                    &#8377;{{item.product.price|floatformat:2 }}
+                </div>
+                <!-- Quantity -->
+                <div class="flex justify-center items-center space-x-2 quantity-form">
+                    <form method="post" class="increment-form" data-item_id="{{item.id}}" data-url="{% url 'decrement_cart_url' item.id %}"
+                        action="{% url 'decrement_cart_url' item.id %}" class="flex items-center space-x-2">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-inter quantity-input">-</button>
+                    </form>
+                    <input id="count_{{item.id}}"  type="number" data-item-id="{{ item.id }}" disabled name="quantity"
+                        value="{{ item.quantity }}"
+                        class="w-16 p-2 border border-gray-300 rounded-lg text-center font-inter focus:ring-2 focus:ring-blue-500">
+                    <form method="post" data-item_id="{{item.id}}" class="decrement-form" data-url="{%url 'increment_cart_url' item.id %}"
+                        action="{% url 'increment_cart_url' item.id %}" class="flex items-center space-x-2">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-inter">+</button>
+                    </form>
+                </div>
+                <!-- Actions -->
+                <div class="flex justify-center items-center space-x-2">
+                    <form method="post" action="{% url 'delete_cart_url'  item.id %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition font-inter"
+                            aria-label="Remove {{ item.product.name }}">Remove</button>
+                    </form>
+                  
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <!-- Order Summary -->
+        <div class="bg-white shadow-xl rounded-lg p-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 font-outfit mb-4">Order Summary</h2>
+            <div class="space-y-2 font-outfit">
+                {% for item in cart %}
+                <div class="flex justify-between  text-sm text-gray-600 ">
+                    <div class="flex gap-2">
+                        <div id="item-quantity_{{item.id}}">{{ item.quantity }}</div>
+                        <span>x</span>
+                        <div>{{ item.product.name }} {{item.color}}</div>
+                    </div>
+                    <div >&#8377;<span id="total_price_{{item.id}}">{{ item.total_price|floatformat:2 }}</span></div>
+                </div>
+                {% endfor %}
+                <div class="flex justify-between text-sm">
+                    <span class="text-green-600">Delivery Charges</span>
+                    <span class="text-green-600">Free</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span>Platform Fee</span>
+                    <span>&#8377;50</span>
+                </div>
+                <div class="">
+                    <p class="text-lg sm:text-xl font-bold text-gray-900 self-start total-value">Total: &#8377; <span id="cart_total">{{cart_total|floatformat:2 }}</span></p>
+
+                </div>
+            </div>
+
+            <div class="flex  justify-between flex-col items-center gap-2 mt-4">
+             
+
+                <a href="{% url 'shipping_url' %}"
+                    class="bg-black text-white px-8 py-2 self-start rounded-3xl hover:bg-gray-900 transition font-outfit text-sm font-bold hover:cursor-pointer">Continue</a>
+
+                <a href="{% url 'all_products_url' %}"
+                    class="text-blue-600 hover:cursor-pointer   self-end  rounded-2xl ">continue shopping...</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-white shadow-xl rounded-lg p-8 text-center">
+        <p class="text-lg text-gray-600 font-inter mb-6">Your cart is empty.</p>
+        <a href="{% url 'all_products_url' %}"
+            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-inter text-lg">Continue
+            Shopping</a>
+    </div>
+    {% endif %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+
+    document.querySelectorAll('.increment-form,.decrement-form').forEach(element => {
+       
+        element.addEventListener('click', (e) => {
+            e.preventDefault();
+           const output = element.parentElement.querySelector(".quantity-display");
+           let url = element.getAttribute('data-url');
+           let item_id = element.getAttribute('data-item_id');
+            let counter = document.getElementById(`count_${item_id}`);
+            let total_price= document.getElementById(`total_price_${item_id}`);
+           let my_vale= document.getElementById(`item-quantity_${item_id}`);
+           let cart_total = document.getElementById('cart_total');
+            
+            axios.post(url,{},{
+                headers:{
+                   
+                'X-CSRFToken': "{{csrf_token}}",
+                'Content-Type': 'application/json',
+                }
+            }).then(response=>{
+               
+               my_vale.innerText= response.data.quantity;
+                counter.value= response.data.quantity;
+                if (Number(response.data.quantity)>=5){
+                    Swal.fire({
+                
+                    icon: "error",
+                    title: "You have reached the limit",
+                    showConfirmButton: false,
+                    draggable:true,
+                    timer: 1900,
+                    
+                });
+                } else if (Number(response.data.quantity)<=1){
+                       Swal.fire({
+                
+                    icon: "error",
+                    title: "You have to purchase any one of them or remove it!",
+                    showConfirmButton: true,
+                    draggable:false,
+                   
+                    
+                });
+                }
+                total_price.innerText= response.data.total_price;
+                cart_total.innerText= response.data.total_amount;
+               
+            })
+            .catch(error=>console.log(error))
+
+
+
+
+        })
+    })
+
+</script>
+
+
+
+
+<!-- SweetAlert for Django messages -->
+{% if messages %}
+<script>
+  {% for message in messages %}
+  Swal.fire({
+   
+    icon: "{{ message.tags|default:'success' }}",
+    title: "{{ message|escapejs }}",
+    showConfirmButton: false,
+    draggable:true,
+    timer: 1900,
+    
+  });
+
+  {% endfor %}
+</script>
+{% endif %}
+
+
+{% endblock %}

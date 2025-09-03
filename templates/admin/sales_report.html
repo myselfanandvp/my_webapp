@@ -1,0 +1,169 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+    <!-- Page Header -->
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-8 tracking-tight">Sales Report</h1>
+
+    <!-- Filter Form -->
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8 transition-all duration-300 hover:shadow-xl">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Generate Sales Report: <span class="capitalize">{{period}}</span></h2>
+        <form id="report-form" method="post" action="{% url 'salereport_url' %}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+            <div>
+                <label for="period" class="block text-sm font-medium text-gray-700">Period</label>
+                <select id="period" name="period" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-200">
+                    <option value="daily">Today (1 Day)</option>
+                    <option value="weekly">This Week</option>
+                    <option value="monthly">This Month</option>
+                    <option value="yearly">This Year</option>
+                    <option value="custom">Custom Date Range</option>
+                </select>
+            </div>
+            <div id="from-date-group" class="hidden">
+                <label for="from_date" class="block text-sm font-medium text-gray-700">From Date</label>
+                <input type="date" id="from_date" name="from_date" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-200">
+            </div>
+            <div id="to-date-group" class="hidden">
+                <label for="to_date" class="block text-sm font-medium text-gray-700">To Date</label>
+                <input type="date" id="to_date" name="to_date" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition duration-200">
+            </div>
+            <div class="flex items-end justify-between gap-4">
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200">Generate Report</button>
+                <a href="{% url 'salereport_url' %}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-200">Clear Filter</a>
+            </div>
+        </form>
+      
+    </div>
+
+    <!-- Sales Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Overall Sales Count -->
+        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+            <h2 class="text-lg font-semibold text-gray-800">Overall Sales Count</h2>
+            <p class="text-3xl font-bold text-green-600" id="sales-count">{{ transactions.count|default:"0" }}</p>
+            <p class="text-sm text-gray-500">Total orders</p>
+        </div>
+        <!-- Overall Order Amount -->
+        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+            <h2 class="text-lg font-semibold text-gray-800">Overall Order Amount</h2>
+            <p class="text-3xl font-bold text-blue-600" id="sales-amount">&#8377; {{ total_amount |floatformat:2 |default:"0.00"  }}</p>
+            <p class="text-sm text-gray-500">Total sales</p>
+        </div>
+        <!-- Overall Discount -->
+        <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+            <h2 class="text-lg font-semibold text-gray-800">Overall Discount</h2>
+       
+            <p class="text-3xl font-bold text-red-600" id="total-discount">&#8377; {{ discount_amount|floatformat:2|default:"0.00" }}</p>
+         
+            <p class="text-sm text-gray-500">Discounts & coupons</p>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h2 class="text-xl capitalize font-semibold text-gray-800 mb-4">Recent Transactions</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto ">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">SI NO</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Order ID</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Customer</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Date</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Amount</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Discount</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Payment Method</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-table">
+                    {% for transaction in transactions %}
+                    <tr class="hover:bg-gray-50 transition duration-200">
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ forloop.counter }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ transaction.id }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600 capitalize">{{ transaction.user.username }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">{{ transaction.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">&#8377; {{ transaction.amount|floatformat:2 }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-600">
+                            {%if transaction.coupon_tran.discount_amount %} 
+
+                            &#8377; {{ transaction.coupon_tran.discount_amount|default:"0.00"|floatformat:2 }}
+                            {%else%}
+                       No Discount
+                            {%endif%}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-600 capitalize">{{ transaction.payment_method }}</td>
+                        <td class="px-4 py-3 text-sm flex justify-center items-center">
+                            <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full uppercase
+                                {% if transaction.order.status == 'delivered' %}bg-green-600 text-white
+                                {% elif transaction.order.status == 'pending' %}bg-amber-500 text-white
+                                {% else %}bg-red-600 text-white{% endif %}">
+                                {{ transaction.order.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-4 py-3 text-sm text-gray-600 text-center">No transactions found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Download Buttons -->
+   <div class="flex justify-end gap-4">
+    <form method="post" action="{% url 'salereport_url' %}">
+
+        <input type="hidden" name="period" value="{{ period }}">
+        <input type="hidden" name="from_date" value="{{ request.POST.from_date }}">
+        <input type="hidden" name="to_date" value="{{ request.POST.to_date }}">
+        <input type="hidden" name="present_date" value="{{generated_date}}">
+        
+        <button type="submit" name="format" value="pdf"
+            class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+            Download PDF
+        </button>
+    </form>
+</div>
+
+<!-- JavaScript for Filter Form Handling -->
+<script>
+const periodSelect = document.getElementById('period');
+const fromDateGroup = document.getElementById('from-date-group');
+const toDateGroup = document.getElementById('to-date-group');
+periodSelect.addEventListener('change', function () {
+    if (this.value === 'custom') {
+        fromDateGroup.classList.remove('hidden');
+        toDateGroup.classList.remove('hidden');
+    } else {
+        fromDateGroup.classList.add('hidden');
+        toDateGroup.classList.add('hidden');
+    }
+});
+</script>
+
+<!-- SweetAlert for Django messages -->
+{% if messages %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+{% for message in messages %}
+Swal.fire({
+    position: "center",
+    icon: "{{ message.tags|default:'success' }}",
+    title: "{{ message|escapejs }}",
+    showConfirmButton: false,
+    timer: 1900,
+    toast: true,
+    width: 'auto',
+    customClass: {
+        popup: 'max-w-[90%] sm:max-w-[400px]'
+    }
+});
+{% endfor %}
+</script>
+{% endif %}
+{% endblock %}

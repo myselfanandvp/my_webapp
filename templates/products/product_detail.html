@@ -1,0 +1,301 @@
+{%extends 'shared/base.html' %}
+
+{%block content%}
+<style>
+    .magnify-container {
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .magnified {
+        display: block;
+        width: 100%;
+        height: auto;
+        cursor: zoom-in;
+    }
+
+    .magnifier {
+        position: absolute;
+        background-size: 500%;
+        z-index: 10;
+        width: 150px;
+        height: 150px;
+        border-radius: 10%;
+        border: none;
+    }
+
+    @media (min-width: 640px) {
+        .magnifier {
+            width: 200px;
+            height: 200px;
+        }
+    }
+</style>
+
+<!-- Main Product Section -->
+<section class="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-6 sm:py-8 max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 items-start">
+        <!-- Product Images -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+            {% for image in product.images.all %}
+            <div class="relative magnify-container">
+                <img src="{{ image.image }}" class="magnified rounded-xl" alt="Product Image">
+                <div class="magnifier hidden absolute w-32 h-32 pointer-events-none border-2 border-gray-400 shadow-2xl"
+                    style="background-image: url('{{ image.image }}'); background-repeat: no-repeat;">
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Product Details -->
+        <div class="space-y-4 w-full">
+            <h1 class="text-lg sm:text-xl md:text-2xl font-bold text-black">{{product.name}}</h1>
+            <p class="text-base sm:text-lg font-bold text-black">&#8377 {{product.price}}</p>
+            <div class="flex items-center space-x-2  bg-white rounded-full px-3 py-1 w-fit">
+                {%if product_rating %}
+                <svg aria-hidden="true" class="h-5 w-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                </svg>
+                <span class="text-gray-700 font-bold text-sm sm:text-base">{{product_rating|floatformat}}</span>
+                <span>reviews({{product.reviews.count|default:0}})</span>
+                {%else%}
+                <span class="text-yellow-400 font-bold text-sm sm:text-base">No Reviews</span>
+                {%endif%}
+            </div>
+            <p class="text-base sm:text-lg font-medium text-gray-500">Available colours: {{product.colors.count}}</p>
+            <p class="text-base sm:text-lg font-medium text-black">Colour:
+                {%for color in product.colors.all%}
+                {{color}} {%if not forloop.last %},{%endif%}
+                {%endfor%}
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+                {%if product.stock_qty%}
+                <form method="post" action="{%url 'add_cart_url' product.id  %}" data-carturl="{%url 'add_cart_url' product.id  %}" data-producturl="{% url 'wishlist_add_url' product.id %}" onsubmit="test(event)" class="flex flex-col w-full sm:w-auto">
+                    {%csrf_token%}
+                    <div class="flex flex-wrap justify-start gap-3">
+                        {%for color in product.colors.all%}
+                        <div class="flex items-center mb-2 gap-2">
+                            <label for="color" class="ms-2 text-sm font-medium text-gray-900">
+                                <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full cursor-pointer"
+                                    style="background-color: {{color}};"></div>
+                            </label>
+                            <input type="radio" value="{{color.id}}" name="color" class="w-6 h-6 text-blue-600 bg-gray-100" required>
+                        </div>
+                        {%endfor%}
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row justify-around gap-3">
+                        <button type="submit" name="action" value="wishlist"
+                        class="bg-red-500 text-white font-bold uppercase px-6 py-3 sm:px-8 sm:py-4 rounded-full text-sm sm:text-base hover:bg-red-600 transition mt-2">Add
+                        to Wishlist</button>
+                        <button type="submit" name="action" value="addtocart"
+                        class="g-red-500  text-white font-bold uppercase px-6 py-3 sm:px-8 sm:py-4 rounded-full text-sm sm:text-base bg-gray-800 hover:bg-gray-900 flex  justify-center transition mt-2">
+                        <svg class="-ms-1 sm:-ms-2 me-1 sm:me-2 h-4 sm:h-5 w-4 sm:w-5" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4h1.5L8 16m0 0h8m-8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm.75-3H7.5M11 7H6.312M17 4v6m-3-3h6">
+                            </path>
+                        </svg>
+                        Add to cart
+                    </button>
+
+                    </div>
+                  
+                </form>
+            
+                {%else%}
+                <button type="button"
+                    class="inline-flex gap-2 bg-yellow-400 items-center rounded-lg px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-primary-800">
+                    <svg width="20px" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M18.7071 4.69719C19.0976 4.30667 19.7308 4.30667 20.1213 4.69719L28.6066 13.1825C28.9971 13.573 28.9971 14.2062 28.6066 14.5967C28.216 14.9872 27.5829 14.9872 27.1924 14.5967L18.7071 6.1114C18.3166 5.72088 18.3166 5.08771 18.7071 4.69719Z"
+                                fill="#ffffff"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M28.7071 4.7068C29.0976 5.09733 29.0976 5.73049 28.7071 6.12102L20.2218 14.6063C19.8313 14.9968 19.1981 14.9968 18.8076 14.6063C18.4171 14.2158 18.4171 13.5826 18.8076 13.1921L27.2929 4.7068C27.6834 4.31628 28.3166 4.31628 28.7071 4.7068Z"
+                                fill="#ffffff"></path>
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M24.3162 15.0513C24.111 14.9829 23.8891 14.9829 23.6838 15.0513L8.86851 19.9889C8.64603 20.063 8.463 20.2102 8.34247 20.3985L4.39805 25.4613C4.1985 25.7175 4.13573 26.0545 4.2297 26.3653C4.32367 26.6761 4.56269 26.922 4.87072 27.0246L8.19325 28.1319L8.19595 36.7634C8.19636 38.0544 9.02257 39.2003 10.2473 39.6085L23.6291 44.0691C23.7475 44.1164 23.8738 44.1406 24.0009 44.1405C24.1293 44.141 24.2569 44.1168 24.3765 44.069L37.7577 39.6086C38.9827 39.2003 39.8089 38.054 39.809 36.7628L39.8096 28.1328L43.1346 27.0246C43.4427 26.922 43.6817 26.6761 43.7757 26.3653C43.8696 26.0545 43.8069 25.7175 43.6073 25.4613L39.6117 20.3327C39.4927 20.176 39.3274 20.0542 39.1315 19.9889L24.3162 15.0513ZM9.54341 22.1112L22.346 26.378L19.6478 29.8413L6.8452 25.5745L9.54341 22.1112ZM24.0025 24.8203L35.6526 20.9376L24 17.0541L12.35 20.9367L24.0025 24.8203ZM10.196 36.7628L10.1935 28.7986L19.686 31.9622C20.088 32.0962 20.5307 31.9623 20.7911 31.6281L23.0003 28.7924L23.0001 41.7513L10.8797 37.7112C10.4715 37.5751 10.1961 37.1931 10.196 36.7628ZM37.8095 28.7993L28.3193 31.9622C27.9174 32.0962 27.4747 31.9623 27.2143 31.6281L25.0013 28.7876L25.0049 41.7514L37.1252 37.7113C37.5336 37.5752 37.809 37.1931 37.809 36.7627L37.8095 28.7993ZM28.3576 29.8413L25.6583 26.3767L38.4609 22.1099L41.1602 25.5745L28.3576 29.8413Z"
+                                fill="#ffffff"></path>
+                        </g>
+                    </svg>
+                    Out Of Stock
+                </button>
+                {%endif%}
+            </div>
+        </div>
+    </div>
+    <div class="mt-8">
+        <div class="flex space-x-4 border-b overflow-x-auto">
+            <button id="description-btn" class="text-gray-900 font-semibold uppercase text-sm sm:text-base pb-2 border-b-2 border-transparent hover:border-gray-900 transition">Description</button>
+            <button id="reviews-btn" class="text-gray-900 font-semibold uppercase text-sm sm:text-base pb-2 border-b-2 border-gray-900">Reviews</button>
+        </div>
+
+        <!-- Description Section -->
+        <div id="description-tab" class="mt-6 space-y-4 hidden">
+            <p class="text-base sm:text-lg text-gray-700">{{product.description}}</p>
+        </div>
+
+        <!-- Reviews Section -->
+        <div id="reviews-tab" class="mt-6 space-y-4">
+            <div class="flex flex-col sm:flex-row gap-4 items-start">
+                <p class="text-gray-900 font-semibold text-sm sm:text-base">Product Rating</p>
+                <div class="flex items-center" aria-label="Rating: {{ product_rating|default:0 }} out of 5 stars">
+                    {% for star in '12345' %}
+                    {% if star|add:"0" <= product_rating|default:0 %}
+                    <svg class="h-5 w-5 sm:h-6 sm:w-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    {% else %}
+                    <svg class="h-5 w-5 sm:h-6 sm:w-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    {% endif %}
+                    {% empty %}
+                    <span class="text-sm text-gray-600 font-medium bg-gray-100 px-2.5 py-0.5 rounded">No reviews yet</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="space-y-4 max-h-64 overflow-y-auto p-4 bg-gray-100 rounded-lg">
+                {% for review in product.reviews.all %}
+                <div class="border-b border-gray-200 pb-4">
+                    <p class="text-sm sm:text-base text-gray-900">{{ review.review }}</p>
+                    <p class="text-sm text-blue-600 font-semibold underline">by {{ review.user.username|default:"Anonymous" }}</p>
+                </div>
+                {% empty %}
+                <p class="text-sm sm:text-base text-gray-500">No reviews yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.magnify-container').each(function () {
+            var $container = $(this);
+            var $img = $container.find('.magnified');
+            var $magnifier = $container.find('.magnifier');
+
+            $container.on('mousemove', function (e) {
+                var offset = $img.offset();
+                var x = e.pageX - offset.left;
+                var y = e.pageY - offset.top;
+
+                var imgWidth = $img.width();
+                var imgHeight = $img.height();
+
+                if (x < 0 || y < 0 || x > imgWidth || y > imgHeight) {
+                    $magnifier.hide();
+                    return;
+                }
+
+                var percentX = (x / imgWidth) * 100;
+                var percentY = (y / imgHeight) * 100;
+
+                $magnifier.css({
+                    left: x - $magnifier.width() / 8,
+                    top: y - $magnifier.height() / 8,
+                    backgroundPosition: percentX + '% ' + percentY + '%',
+                    backgroundSize: (imgWidth * 2) + 'px ' + (imgHeight * 2) + 'px'
+                }).show();
+            });
+
+            $container.on('mouseleave', function () {
+                $magnifier.hide();
+            });
+        });
+    });
+</script>
+
+
+<script>
+
+    function test(e) {
+        const form = e.target;
+        const action = $(e.target).find('button[type="submit"]:focus').val();
+        if (action === 'wishlist') {
+            e.preventDefault();
+            const productUrl = form.dataset.producturl;
+            const formData = new FormData(form);
+            fetch(productUrl, {
+                method: "POST",
+                headers: {
+                    'X-CSRFToken': "{{csrf_token}}"
+                },
+                body: formData
+            }).then(response => response.json())
+                .then(data => {
+                    Swal.fire({
+                        icon: data.status,
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeIn'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOut'
+                        }
+                    });
+                })
+                .catch(error => console.log(error));
+        }
+        else if (action === "addtocart"){
+            e.preventDefault();
+            const data = document.querySelector("form[data-carturl]");
+            const url = data.dataset.carturl;
+
+           const formData = new FormData(data);
+           fetch(url,{
+            headers:{
+                "X-CSRFToken":"{{csrf_token}}"
+            },method:"POST",
+            body:formData
+           }).then(response=>response.json()).then(data=>{
+                Swal.fire({
+                        icon: data.status,
+                        text: data.message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        showClass: {
+                            popup: 'animate__animated animate__fadeIn'
+                        },
+                        hideClass: {
+                            popup: 'animate__animated animate__fadeOut'
+                        }
+                    });
+
+           }).catch(error=>console.log(error))
+            
+        } // Allow form submission for cart
+    }
+</script>
+<script>
+    // Tab switching
+       $(document).ready(function () {
+        $('#description-btn').click(function () {
+            $('#description-tab').removeClass('hidden');
+            $('#reviews-tab').addClass('hidden');
+            $(this).addClass('border-gray-900').removeClass('border-transparent');
+            $('#reviews-btn').removeClass('border-gray-900').addClass('border-transparent');
+        });
+
+        $('#reviews-btn').click(function () {
+            $('#reviews-tab').removeClass('hidden');
+            $('#description-tab').addClass('hidden');
+            $(this).addClass('border-gray-900').removeClass('border-transparent');
+            $('#description-btn').removeClass('border-gray-900').addClass('border-transparent');
+        });
+    });
+
+</script>
+
+{%endblock%}

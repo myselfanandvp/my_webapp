@@ -1,0 +1,193 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+{% block content %}
+
+<main class="flex justify-center items-center min-h-screen px-4 py-8 bg-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-2 bg-gray-700 p-6 gap-6 rounded-3xl shadow-xl w-full max-w-5xl">
+        <!-- Form Section -->
+        <div class="flex flex-col gap-4 justify-center">
+            <!-- OTP Form -->
+            <form method="post" class="flex flex-col justify-center w-full space-y-4">
+                {% csrf_token %}
+                <div class="text-center mb-4">
+                    <p class="text-white font-bold text-3xl md:text-4xl">OTP Verification</p>
+                    <p class="text-gray-300 text-sm mt-1">Enter the OTP sent to your email or phone</p>
+                </div>
+
+                <!-- OTP Field -->
+                <div class="flex items-center justify-center gap-3">
+                    {% for field in form %}
+                    {{ field }}
+                    {% if field.errors %}
+                    <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="text-red-600 text-sm text-center">
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Submit Button -->
+                <div class="flex justify-center">
+                    <button type="submit" id="myButton"
+                        class="text-white w-52 bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center transition">
+                        Verify OTP
+                    </button>
+                </div>
+            </form>
+
+            <!-- Timer & Resend -->
+            <div class="grid lg:grid-cols-2 grid-cols-1 items-center">
+                <!-- Countdown Timer -->
+                <div id="otp-timer" class="text-center text-sm text-gray-300">
+                    Resend available in <span id="timer" class="text-blue-400">30s</span>
+                </div>
+
+                <!-- Resend OTP -->
+                <form method="post" class="flex gap-2 justify-center items-center text-gray-300">
+                    {% csrf_token %}
+                    <span>Didn’t receive the OTP?</span>
+                    <button id="resendotp" type="button" onclick="{resend_btn()}"
+                        class="text-blue-400 hover:underline">Resend</button>
+                </form>
+            </div>
+
+
+
+            <!-- Back to Login -->
+            <div class="flex justify-center">
+                <a href="{% url 'login_user_url' %}" class="text-white font-bold hover:text-blue-400">
+                    Go back to login page
+                </a>
+            </div>
+        </div>
+
+
+
+        <!-- Image Section -->
+        <div class="hidden md:flex justify-center items-center w-full">
+            <div class="w-full h-96 max-w-md rounded-3xl overflow-hidden">
+                <img src="{% static 'app_images/form_images/otp_banner.jpg' %}" alt="OTP Banner"
+                    class="w-full h-full object-cover" />
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+<script>
+    // Countdown timer for resend button
+    let countdown = 30;
+    let countdownInterval;
+
+    function startCountdown() {
+        const resendBtn = document.getElementById('resendotp');
+        const timerSpan = document.getElementById('timer');
+        resendBtn.disabled = true;
+        document.getElementById('otp-timer').style.display = 'block';
+
+        countdownInterval = setInterval(() => {
+            countdown--;
+            timerSpan.textContent = `${countdown}s`;
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                resendBtn.disabled = false;
+                resendBtn.classList.remove("hidden")
+                document.getElementById('otp-timer').style.display = 'none';
+                countdown = 30;
+            }
+        }, 1000);
+    }
+
+    function resend_btn() {
+        document.getElementById('resendotp').classList.add("hidden");
+    }
+
+
+    document.getElementById('resendotp').addEventListener('click', () => {
+
+        fetch('{% url "resendotp_url" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                startCountdown()
+
+                Swal.fire({
+                    position: "center",
+                    icon: "success",
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Something went wrong!");
+            });
+    });
+
+
+</script>
+<script>
+    {% if messages %}
+    {% for message in messages %}
+    Swal.fire({
+        icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
+        title: '{{ message.tags|title }}',
+        text: '{{ message|escapejs }}',
+        showConfirmButton: false,
+        timer: 3000,
+        showClass: {
+            popup: 'animate__animated animate__fadeIn'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOut'
+        }
+    });
+    {% endfor %}
+    {% endif %}
+</script>
+<script>
+    const inputs = document.querySelectorAll('.otp-input');
+
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.inputType === 'insertText' && e.target.value.length === 1) {
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const paste = e.clipboardData.getData('text').slice(0, inputs.length).split('');
+            paste.forEach((char, i) => {
+                inputs[i].value = char;
+            });
+            inputs[paste.length - 1].focus();
+        });
+    });
+</script>
+
+
+
+{% endblock %}

@@ -1,0 +1,547 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto">
+    <!-- Address and Payment Section -->
+    <div class="md:col-span-2">
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold font-inter text-gray-900">Add New Delivery Address</h1>
+      <div class="mt-4 bg-gray-200 h-px"></div>
+
+       <form id="shipping-address-form" method="post" action="" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label for="full_name" class="block text-sm font-medium text-gray-700 font-inter">Full Name <span class="text-red-600">*</span></label>
+                <input type="text" id="full_name" name="full_name" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg font-inter focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="John Doe">
+            </div>
+            <div>
+                <label for="street" class="block text-sm font-medium text-gray-700 font-inter">Street Address <span class="text-red-600">*</span></label>
+                <input type="text" id="street" name="street" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg font-inter focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="123 Main St">
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="city" class="block text-sm font-medium text-gray-700 font-inter">City <span class="text-red-600">*</span></label>
+                    <input type="text" id="city" name="city" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg font-inter focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Mumbai">
+                </div>
+                <div>
+                    <label for="state" class="block text-sm font-medium text-gray-700 font-inter">State <span class="text-red-600">*</span></label>
+                    <input type="text" id="state" name="state" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg font-inter focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Maharashtra">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="postal_code" class="block text-sm font-medium text-gray-700 font-inter">Postal Code <span class="text-red-600">*</span></label>
+                    <input type="text" id="postal_code" name="postal_code" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg font-inter focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="400001">
+                </div>
+                <div>
+                    <label for="country" class="block text-sm font-medium text-gray-700 font-inter">Country <span class="text-red-600">*</span></label>
+                    <input type="text" id="country" name="country" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg font-inter focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="India">
+                </div>
+            </div>
+            <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700 font-inter">Phone <span class="text-red-600">*</span></label>
+                <input type="tel" id="phone" name="phone" required class="mt-1 block w-full p-3 border border-gray-300 rounded-lg font-inter focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="+91 9876543210">
+            </div>
+            <div class="flex justify-between items-center gap-4 mt-6">
+                <a href="{%url 'list_cart_url' %}" class="text-blue-600 hover:underline font-inter">Back to Cart</a>
+                <button type="submit" id="submit-btn" class="bg-black text-white px-8 py-3 rounded-3xl hover:bg-gray-900 transition font-outfit text-sm font-bold">Add Address</button>
+            </div>
+        </form>
+        <div class="mt-4 bg-gray-200 h-px"></div>
+      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold font-inter text-gray-900">Select Delivery Address</h1>
+      {% if addresses %}
+        <form action="{% url 'payment_handler' %}" method="post" class="mt-4 sm:mt-6 space-y-4" id="checkoutForm">
+          {% csrf_token %}
+          <!-- Address Selection -->
+          {% for address in addresses %}
+            <label class="flex items-center bg-white rounded-lg p-4 sm:p-6 mb-4 sm:flex-row sm:items-center sm:space-x-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer has-[:checked]:ring-2 has-[:checked]:ring-blue-500">
+              <input type="radio" name="selected_address" value="{{ address.id }}" data-alternate-phone-number="{{ request.user.phone_number }}" class="mr-4 w-5 h-5 text-blue-600 focus:ring-blue-500" {% if forloop.first %}checked{% endif %} required aria-label="Select address for {{ address.user.first_name }}, {{ address.city }}, {{ address.country }}">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 flex-1">
+                <img src="{% static 'app_images/general_images/verified.jpeg' %}" alt="Location icon" class="w-6 h-6 mb-2 sm:mb-0">
+                <div class="flex-1">
+                  <p class="font-outfit font-medium text-base sm:text-lg text-gray-900 capitalize">
+                     {% if address.full_name %}
+                      {{ address.full_name }}
+                    {% else %}
+                      {{ request.user.username }}
+                    {% endif %}</p>
+                  <p class="font-outfit font-medium text-sm sm:text-base text-gray-700">{{ address.alternate_phone_number }}</p>
+                  <p class="font-outfit text-sm sm:text-base text-gray-700">{{ address.city }}, {{ address.state }} {{ address.postal_code }}, {{ address.country }}</p>
+                  <p class="font-outfit text-sm sm:text-base text-gray-700 capitalize">{{ address.type }}</p>
+                </div>
+                <img src="{% static 'app_images/general_images/address.jpeg' %}" alt="Address illustration" class="w-12 h-12 sm:w-16 sm:h-16 self-center sm:self-auto">
+              </div>
+            </label>
+          {% endfor %}
+          
+          <!-- Payment Method Selection -->
+          <h2 class="text-xl sm:text-2xl font-bold font-outfit text-gray-800 mt-6">Select Payment Method</h2>
+          <div class="mt-4 space-y-4">
+            <label class="flex items-center bg-white rounded-lg p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer has-[:checked]:ring-2 has-[:checked]:ring-blue-500">
+              <input type="radio" name="payment_method" value="razorpay" class="mr-4 w-5 h-5 text-blue-600 focus:ring-blue-500" required aria-label="Select Razorpay payment">
+              <span class="font-outfit font-medium text-base sm:text-lg text-gray-900">Razorpay</span>
+            </label>
+            <label class="flex items-center bg-white rounded-lg p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer has-[:checked]:ring-2 has-[:checked]:ring-blue-500">
+              <input type="radio" name="payment_method" value="wallet" class="mr-4 w-5 h-5 text-blue-600 focus:ring-blue-500" required aria-label="Select Wallet payment">
+              <span class="font-outfit font-medium text-base sm:text-lg text-gray-900">Wallet (Balance: ₹{{ wallet.balance_amount|floatformat:2 }})</span>
+            </label>
+            <label class="flex items-center bg-white rounded-lg p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer has-[:checked]:ring-2 has-[:checked]:ring-blue-500">
+              <input  type="radio" name="payment_method" value="cod" class="mr-4 w-5 h-5 text-blue-600 focus:ring-blue-500 cod-btn" required aria-label="Select Cash on Delivery payment">
+              <span class="font-outfit font-medium text-base sm:text-lg text-gray-900">Cash on Delivery</span>
+            </label>
+           
+          </div>
+          
+          <div class="mt-4 bg-gray-200 h-px"></div>
+          <button type="submit" class="mt-4 bg-red-500 text-white font-poppins text-xs sm:text-sm py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-colors" aria-label="Proceed with selected address and payment">Proceed</button>
+        </form>
+        <div class="mt-4">
+           
+          <a href="{% url 'add_user_address_url' %}" class="font-outfit font-medium text-base sm:text-lg text-gray-900 hover:text-blue-600 transition-colors">+ Add a new address</a>
+        </div>
+      {% else %}
+        <!-- Empty Address State -->
+        <div class="mt-4 sm:mt-6">
+          <p class="font-outfit font-medium text-base sm:text-lg text-gray-900 hover:text-blue-600 transition-colors">No Address Found</p>
+        </div>
+        <div class="mt-4 bg-gray-200 h-px"></div>
+        <button type="button" class="mt-4 bg-red-500 text-white font-poppins text-xs sm:text-sm py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition-colors opacity-50 cursor-not-allowed" disabled aria-label="Proceed button (disabled - no addresses available)">Proceed</button>
+      {% endif %}
+    </div>
+
+    <!-- Order Summary -->
+    <div class="md:col-span-1">
+      <div class="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+        <h2 class="text-xl sm:text-2xl font-bold font-outfit text-gray-800">Order Summary</h2>
+        <div class="mt-4 space-y-3">
+          {% for item in cart_items %}
+            <div class="flex justify-between">
+              <p class="font-outfit font-semibold text-sm text-gray-800">{{ item.quantity }} x {{ item.product.name }}({{item.color}})</p>
+              <p class="font-outfit font-semibold text-sm text-gray-800">₹{{ item.total_price|floatformat:2 }}</p>
+            </div>
+          {% endfor %}
+          <div class="flex justify-between">
+            <p class="font-outfit font-semibold text-sm text-green-600">Delivery Charges</p>
+            <p class="font-outfit font-semibold text-sm text-green-600">Free Delivery</p>
+          </div>
+          <div class="flex justify-between">
+            <p class="font-outfit font-semibold text-sm text-gray-800">Platform Fee</p>
+            <p class="font-outfit font-semibold text-sm text-gray-800">₹50</p>
+            
+          </div>
+          {% if request.session.applied_coupon%}
+          <div class="flex justify-between discount-section">
+          <p class="font-outfit font-semibold text-sm text-green-600">Discount ({{request.session.applied_coupon.code}})</p>
+          <p class="font-outfit font-semibold text-sm text-green-600">-₹{{request.session.applied_coupon.discount_amount|floatformat:2 }}</p>
+          {%endif%}
+        </div>
+          {% if discount %}
+            <div class="flex justify-between">
+              <p class="font-outfit font-semibold text-sm text-green-600">Discount ({{ discount.code }})</p>
+              <p class="font-outfit font-semibold text-sm text-green-600">-₹{{ discount.discount_amount|floatformat:2 }}</p>
+            </div>
+          {% endif %}
+          <div class="flex justify-between border-t pt-3 mt-3">
+            <p class="font-outfit font-bold text-base sm:text-lg text-gray-800">Total</p>
+            <p class="font-outfit font-bold text-base sm:text-lg text-gray-800">₹{{ final_total|floatformat:2 }}</p>
+          </div>
+        </div>
+    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+  <p class="text-lg font-semibold text-gray-700">Coupon Codes</p>
+
+   <!-- Scrollable list -->
+  <div class="max-h-36  overflow-y-auto mt-4 pr-2 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-purple-50">
+    {% for coupon in coupons %}
+      <div class="flex items-center justify-center gap-3 mb-2 rounded-2xl border-1 border-dotted  bg-gray-900">
+        <p class="text-sm font-bold text-orange-500 ">
+          <span class="text-white px-2 ">{{ coupon.code }}</span> — {{ coupon.discount }}% OFF
+        </p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+        <form action="{% url 'discount' %}" class="mt-4" method="post" onsubmit="check_discount(event)">
+          {% csrf_token %}
+          <input type="text" name="discount_coupon" placeholder="Discount code" class="w-full p-2 border border-gray-300 rounded-lg font-poppins text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Enter discount code">
+          <div class="text-sm text-red-400 hidden" id="couponresponse">Coupon is invalid</div>
+          <button type="submit" name="discount_btn" class="mt-2 w-full bg-gray-800 text-white font-outfit font-semibold text-base sm:text-lg py-2 sm:py-3 rounded-lg hover:bg-gray-900 transition-colors" aria-label="Apply discount code">Apply Discount</button>
+        </form>
+
+        <form action="{% url 'removecoupon_url' %}" class="mt-4" method="post">
+          {% csrf_token %}
+        
+          <button type="submit" name="discount_btn" class="mt-2 w-full bg-gray-800 text-white font-outfit font-semibold text-base sm:text-lg py-2 sm:py-3 rounded-lg hover:bg-gray-900 transition-colors" aria-label="Apply discount code">Remove Discount</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+
+
+<script>
+  // Pass Django template variables to JavaScript
+  const walletBalance = {{ wallet.balance_amount|floatformat:2 }};
+  let finalTotal = {{ final_total|floatformat:2 }};
+  const originalTotal = {{ final_total|floatformat:2 }};
+ 
+  // Helper function to create hidden input
+  function createHiddenInput(name, value) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value || '';
+    return input;
+  }
+
+
+
+
+
+  // Add event listener to the wallet radio button
+  document.querySelector('input[value="wallet"]').addEventListener('change', function() {
+    const selectedAddress = document.querySelector('input[name="selected_address"]:checked');
+
+    if (this.checked && walletBalance < finalTotal) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Low Wallet Balance',
+        text: `Your wallet balance (₹${walletBalance.toFixed(2)}) is insufficient for the total amount (₹${finalTotal.toFixed(2)}). Please add funds to your wallet or choose another payment method.`,
+        showCancelButton: true,
+        confirmButtonText: 'Add Funds',
+        cancelButtonText: 'Choose Another Method',
+        buttonsStyling: true,
+        customClass: {
+          confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors mr-2',
+          cancelButton: 'bg-gray-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-gray-600 transition-colors'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = "{% url 'wallet_url' %}";
+        } else {
+          this.checked = false;
+        }
+      });
+    }
+  });
+
+  // Form submission validation
+  document.getElementById('checkoutForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+    const selectedAddress = document.querySelector('input[name="selected_address"]:checked');
+
+    if (!selectedPayment) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No Payment Method Selected',
+        text: 'Please select a payment method to proceed.',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+        }
+      });
+      return;
+    }
+
+    if (!selectedAddress) {
+      Swal.fire({
+        icon: 'error',
+        title: 'No Address Selected',
+        text: 'Please select a delivery address to proceed.',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+        }
+      });
+      return;
+    }
+
+    const phoneNumber = selectedAddress.getAttribute('data-alternate-phone-number');
+    if (!phoneNumber) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Missing Phone Number',
+        text: 'The selected address does not have a valid phone number. Please update the address or select another.',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+        }
+      });
+      return;
+    }
+
+    if (selectedPayment.value === 'wallet' && walletBalance < finalTotal) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Insufficient Balance',
+        text: 'Your wallet balance is too low. Please add funds or select another payment method.',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+        }
+      });
+      return;
+    }
+
+
+     if (selectedPayment.value === 'cod' && finalTotal < 1000) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Payment Method',
+        text: 'Cash on Delivery is not available for orders below ₹1000. Please select another payment method.',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+        }
+      });
+      return;
+    }
+
+    const form = document.getElementById('checkoutForm');
+    // Clear any existing hidden inputs to avoid duplicates
+    ['razorpay_payment_id', 'razorpay_order_id', 'razorpay_signature', 'phone_number', 'selected_address', 'payment_method'].forEach(name => {
+      const existing = form.querySelector(`input[name="${name}"]`);
+      if (existing) existing.remove();
+    });
+
+    // Add common form data
+    form.appendChild(createHiddenInput('selected_address', selectedAddress.value));
+    form.appendChild(createHiddenInput('phone_number', phoneNumber));
+    form.appendChild(createHiddenInput('payment_method', selectedPayment.value));
+
+ 
+
+    if (selectedPayment.value === 'razorpay') {
+      var options = {
+        "key": "{{ razorpayid }}",
+        "amount": {{ onlinepaymentamount }},
+        "currency": "INR",
+        "name": "{{ name }}",
+        "description": "Purchase Transaction",
+        "image": "",
+        "order_id": "{{ order_id }}",
+        "handler": function(response) {
+          console.log("Payment Success:", response);
+          // Clear existing hidden inputs again for Razorpay-specific fields
+          ['razorpay_payment_id', 'razorpay_order_id', 'razorpay_signature'].forEach(name => {
+            const existing = form.querySelector(`input[name="${name}"]`);
+            if (existing) existing.remove();
+          });
+          // Add Razorpay payment details
+          form.appendChild(createHiddenInput('razorpay_payment_id', response.razorpay_payment_id));
+          form.appendChild(createHiddenInput('razorpay_order_id', response.razorpay_order_id));
+          form.appendChild(createHiddenInput('razorpay_signature', response.razorpay_signature));
+          form.action = "{% url 'payment_handler' %}";
+          console.log("Submitting Razorpay form with data:", new FormData(form));
+          form.submit();
+        },
+        "prefill": {
+          "name": "{{ request.user.first_name }}",
+          "email": "{{ request.user.email }}",
+          "contact": "{{ request.user.phone_number }}",
+        },
+        "notes": {
+          "address": "Razorpay Corporate Office",
+        },
+        "theme": {
+          "color": "#3399cc",
+          "backdrop_color": "transparent"
+        },
+        "config": {
+          "display": {
+            "otp": false
+          }
+        }
+      };
+
+      try {
+        var rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function(response) {
+          console.error("Payment Failed:", response.error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Payment Failed',
+            text: response.error.description,
+            confirmButtonText: 'OK',
+            buttonsStyling: false,
+            customClass: {
+              confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+            }
+          }).then(() => {
+            window.location.href = "{% url 'order_failed' %}";
+          });
+        });
+        rzp1.open();
+      } catch (error) {
+        console.error("Error opening Razorpay popup:", error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Payment Error',
+          text: 'Failed to initiate payment. Please try again.',
+          confirmButtonText: 'OK',
+          buttonsStyling: false,
+          customClass: {
+            confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+          }
+        });
+      }
+    } else {
+      // For COD and Wallet, submit to shipping_url
+      form.action = "{% url 'shipping_url' %}";
+      console.log("Submitting non-Razorpay form with data:", new FormData(form));
+      form.submit();
+    }
+  });
+
+  
+
+  // Modified discount checking function
+  function check_discount(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const couponCode = formData.get('discount_coupon');
+
+    fetch('{% url "discount" %}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Response:", data);
+      const couponResponse = document.getElementById('couponresponse');
+      if (data.status === "success") {        
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: `Coupon ${data.code} applied!`,
+          confirmButtonText: 'OK',
+          buttonsStyling: false,
+          customClass: {
+            confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+          }
+        });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+
+      } else {
+        console.log("Error:", data.message);
+        couponResponse.textContent = data.message;
+        couponResponse.classList.remove('hidden');
+      }
+    })
+    .catch(error => {
+      console.error("Fetch error:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred while applying the coupon.',
+        confirmButtonText: 'OK',
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: 'bg-blue-500 text-white font-poppins text-sm py-2 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-colors'
+        }
+      });
+    });
+  }
+
+
+
+</script>
+<script>
+
+
+
+document.getElementById("shipping-address-form").addEventListener('submit',(e)=>{
+e.preventDefault();
+const formData = new FormData(e.target);
+const csrf_token=formData.get('csrfmiddlewaretoken');
+
+fetch('{%url "add_new_address_url"%}',{
+ method:"POST",
+  body:formData,
+}).then(response=>response.json()).then(data=>{
+  console.log(data.status)
+  if(data.status==='success'){
+ Swal.fire({
+    position: "center",
+    icon: data.status,
+    title: "Address Added",
+    text:data.message,
+    showConfirmButton: false,
+    toast: true,
+    width: 'auto',
+    customClass: {
+      popup: 'max-w-[90%] sm:max-w-[400px]'
+    }
+      });
+    window.location.reload();
+  }
+  if(data.status==="error"){
+    Swal.fire({
+    position: "center",
+    icon: data.status,
+    text:data.message,
+    showConfirmButton: false,
+   timer: 1500
+      });
+  }
+
+}).catch(error=>
+{console.log(error)}
+)
+
+
+
+})
+
+</script>
+
+
+<!-- SweetAlert for Django messages -->
+{% if messages %}
+<script>
+  {% for message in messages %}
+  Swal.fire({
+    position: "center",
+    icon: "{{ message.tags|default:'success' }}",
+    title: "{{ message|escapejs }}",
+    showConfirmButton: false,
+    timer: 1900,
+    toast: true,
+    width: 'auto',
+    customClass: {
+      popup: 'max-w-[90%] sm:max-w-[400px]'
+    }
+  });
+  {% endfor %}
+</script>
+{% endif %}
+
+{% endblock %}

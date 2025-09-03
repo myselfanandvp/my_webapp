@@ -1,0 +1,110 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="flex justify-center items-center min-h-screen px-4 py-8 bg-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-2 bg-gray-700 p-6 gap-6 rounded-3xl shadow-xl w-full max-w-5xl">
+        <!-- Form Section -->
+        <form method="post" class="flex flex-col justify-center w-full space-y-4">
+            {% csrf_token %}
+            <div class="text-center mb-4">
+                <p class="text-white font-bold text-3xl md:text-4xl">Admin Login</p>
+            </div>
+
+            <!-- Form Fields -->
+            {% for field in form %}
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-300" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% if field.label == "Password" %}
+                <div class="relative">
+                    {{ field }}
+                    <button 
+                        type="button" 
+                        id="togglePassword" 
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-200"
+                    >
+                        <svg id="eyeIcon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </button>
+                </div>
+                {% else %}
+                {{ field }}
+                {% endif %}
+                {% if field.errors %}
+                <p class="text-sm text-red-400 pt-2">{{ field.errors|striptags }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <!-- Forgot password link -->
+            <div class="text-right mt-1">
+                <a href="{% url 'forgot_password_url' %}" class="text-sm text-blue-300 hover:underline">
+                    Forgot password?
+                </a>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-center">
+                <button type="submit"
+                    class="text-white w-52 bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center transition">
+                    Login
+                </button>
+            </div>
+        </form>
+
+        <!-- Image Section -->
+        <div class="hidden md:flex justify-center items-center w-auto h-full rounded-2xl overflow-hidden relative">
+            <img src="{% static 'app_images/form_images/login-banner.jpeg' %}" alt="Signup Banner"
+                class="absolute inset-0 w-full h-full object-cover object-top" />
+        </div>
+    </div>
+</main>
+
+<script>
+    // Password toggle functionality
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.querySelector('input[name="password"]');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    if (togglePassword && passwordInput && eyeIcon) {
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Toggle between eye and eye-slash icons
+            if (type === 'text') {
+                eyeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.975 9.975 0 011.662-2.908m2.858-1.367A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.974 9.974 0 01-1.662 2.908m-2.858 1.367A10.05 10.05 0 0112 19m0 0v0m0 0c-1.656 0-3-1.344-3-3s1.344-3 3-3 3 1.344 3 3-1.344 3-3 3z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"></path>
+                `;
+            } else {
+                eyeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                `;
+            }
+        });
+    }
+
+    // Existing SweetAlert code for messages
+    {% if messages %}
+    {% for message in messages %}
+    Swal.fire({
+        icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" %}error{% else %}info{% endif %}',
+        // title: '{{ message.tags|title }}',
+        text: '{{ message|escapejs }}',
+        showConfirmButton: false,
+        timer: 3000,
+        showClass: {
+            popup: 'animate__animated animate__fadeIn'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOut'
+        }
+    });
+    {% endfor %}
+    {% endif %}
+</script>
+{% endblock %}

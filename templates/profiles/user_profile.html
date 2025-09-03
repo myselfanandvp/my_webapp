@@ -1,0 +1,100 @@
+{% extends 'shared/profile_base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="w-full px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 max-w-4xl mx-auto text-white">
+    <div class="relative shadow-2xl shadow-gray-950 rounded-2xl overflow-hidden">
+        <!-- Blurred Background Image Layer -->
+        <div
+            class="absolute blur-sm inset-0 bg-[url('https://i.pinimg.com/1200x/be/ac/43/beac43f118280cb52858589c842789c9.jpg')] bg-cover bg-center">
+        </div>
+
+        <!-- Content Layer -->
+        <div class="relative z-10 ">
+            <!-- Header with profile image -->
+            <div class="p-4 relative">
+                <div class="absolute left-1/2 transform -translate-x-1/3 top-[60%] sm:top-[65%]">
+                    <div class="relative w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28">
+                        {% if user.profile_img %}
+                        <img src="{{ user.profile_img.url }}" alt="Profile Image"
+                            class="w-full h-full rounded-xl border-4 border-white shadow-md object-cover">
+                        {% else %}
+                        <img src="{% static 'app_images/general_images/No_image.svg.png' %}" alt="Default Profile"
+                            class="w-full h-full rounded-full border-4 border-white shadow-md object-cover">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Details -->
+            <div class="pt-16 sm:pt-20 md:pt-24 pb-6 px-4 sm:px-6 md:px-8 mt-10">
+                <div class="space-y-4 sm:space-y-6">
+                    <div class="flex flex-col gap-10 items-start">
+                        <div class="flex items-center justify-center gap-2">
+                            <p class="font-bold text-justify text-lg text-gray-300">Name:</p>
+                            <p class="text-white text-justify font-semibold">
+                                {% if user.first_name or user.last_name %}
+                                {{ user.first_name|default:"" }} {{ user.last_name|default:"" }}
+                                {% else %}
+                                Not set
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center justify-center gap-2">
+                            <div class="font-bold text-justify text-lg text-gray-300">Email:</div>
+                            <p class="text-white text-justify font-semibold">{{ user.email|default:"Not set" }}</p>
+                        </div>
+
+                        <div class="flex items-center justify-center gap-2">
+                            <div class="font-bold text-justify text-lg text-gray-300">Phone Number:</div>
+                            <p class="text-white text-justify font-semibold">{{ user.phone_number|default:"Not set" }}</p>
+                        </div>
+                          <div class="flex items-center justify-center gap-2">
+                            <div class="font-bold text-justify text-lg text-gray-300">Referal Code:</div>
+                            <p id="couponcode" class="text-white text-justify font-semibold bg-red-500 border-2 border-dotted px-3 rounded-2xl ">{{ user.referral_code|default:"No Code Available" }}</p>
+                            <div class="flex h-10 items-start">
+
+                                <button id="copy-btn" data-copy="#couponcode"><svg fill="#ffffff" height="20px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 352.804 352.804" xml:space="preserve" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M318.54,57.282h-47.652V15c0-8.284-6.716-15-15-15H34.264c-8.284,0-15,6.716-15,15v265.522c0,8.284,6.716,15,15,15h47.651 v42.281c0,8.284,6.716,15,15,15H318.54c8.284,0,15-6.716,15-15V72.282C333.54,63.998,326.824,57.282,318.54,57.282z M49.264,265.522V30h191.623v27.282H96.916c-8.284,0-15,6.716-15,15v193.24H49.264z M303.54,322.804H111.916V87.282H303.54V322.804 z"></path> </g> </g></svg></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2 sm:pt-4">
+                        <div class="flex space-x-4">
+                            <a class="font-bold text-blue-400 text-lg hover:underline"
+                               href="{% url 'change_password_url' %}">Change Password</a>
+                            <a class="font-bold text-blue-400 text-lg hover:underline"
+                               href="{% url 'change_email_url' %}">Change Email</a>
+                        </div>
+                        <a href="{% url 'user_profile_edit_url' %}"
+                           class="bg-blue-600 text-white font-bold py-2 px-4 sm:px-6 rounded-lg hover:bg-blue-700 transition-colors shadow-md text-sm sm:text-base">
+                            Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.getElementById('copy-btn').addEventListener('click', async ()=>{
+   data =  document.getElementById("couponcode").innerText;
+   await navigator.clipboard.writeText(data);
+   
+    Swal.fire({
+    title: "Coupon is copyied to clipboard!",
+    icon: "success",
+    showConfirmButton:false,
+    timer:1000
+    });
+
+   
+
+})
+</script>
+
+
+{% endblock %}

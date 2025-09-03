@@ -1,0 +1,356 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-4 sm:p-6 lg:p-8 font-sans">
+  <div class="max-w-7xl mx-auto">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center mb-8 animate-fade-in">
+      <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+        Order Details
+      </h1>
+      <a onclick="history.back()" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 hover:cursor-pointer">
+        Back to Order List
+      </a>
+    </div>
+
+    {% for order in orders %}
+    <div class="container mx-auto px-4 py-6 sm:py-8">
+      <!-- Order Header -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-8 border border-gray-100 transform hover:scale-[1.01] transition-transform duration-300 animate-slide-up">
+        <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mb-6 gap-4">
+          <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-800">Order ID: #{{ order.id }}</h1>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div>
+            <p class="text-gray-700 text-sm sm:text-base">
+              <span class="font-semibold">Purchase Date:</span> {{ order.created_at|date:"d M, Y" }}
+            </p>
+          </div>
+          <div>
+            <p class="text-gray-700 text-sm sm:text-base">
+              <span class="font-semibold">Status:</span> 
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize
+                {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800{% endif %}
+                {% if order.status == 'confirmed' %}bg-blue-100 text-blue-800{% endif %}
+                {% if order.status == 'shipped' %}bg-blue-100 text-blue-800{% endif %}
+                {% if order.status == 'delivered' %}bg-green-100 text-green-800{% endif %}
+                {% if order.status == 'canceled' %}bg-red-100 text-red-800{% endif %}
+              ">
+                {{ order.status|capfirst }}
+              </span>
+            </p>
+          </div>
+          {% if order.status == 'canceled' and order.cancellation_reason %}
+          <div>
+            <p class="text-gray-700 text-sm sm:text-base">
+              <span class="font-semibold">Cancellation Reason:</span> 
+              <span class="text-red-600 font-medium">{{ order.cancellation_reason|default:"N/A" }}</span>
+            </p>
+          </div>
+          {% endif %}
+          {% if order.payment_method == 'razorpay' %}
+          <div>
+            <p class="text-gray-700 text-sm sm:text-base">
+              <span class="font-semibold">Payment ID:</span> {{ order.razorpay_payment_id|default:"N/A" }}
+            </p>
+          </div>
+          <div>
+            <p class="text-gray-700 text-sm sm:text-base">
+              <span class="font-semibold">Payment Order ID:</span> {{ order.razorpay_order_id|default:"N/A" }}
+            </p>
+          </div>
+          {% endif %}
+          <div>
+            <p class="text-gray-700 text-sm sm:text-base">
+              <span class="font-semibold">Payment Method:</span> 
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize
+                {% if order.payment_method == 'cod' %}bg-yellow-100 text-yellow-800{% endif %}
+                {% if order.payment_method == 'wallet' %}bg-blue-100 text-blue-800{% endif %}
+                {% if order.payment_method == 'razorpay' %}bg-purple-100 text-purple-800{% endif %}
+              ">
+                {{ order.payment_method|capfirst|default:"N/A" }}
+              </span>
+            </p>
+          </div>
+          <div>
+            <p class="text-gray-700 text-sm sm:text-base">
+              <span class="font-semibold">Total Payment:</span> <span class="text-green-600 font-semibold">₹{{ order.total_payment|floatformat:2 }}</span>
+            </p>
+          </div>
+          <div>
+            <p class="text-gray-700 text-sm sm:text-base">
+              <span class="font-semibold">Platform Fee:</span> <span class="text-gray-600">₹50</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping Address -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-8 border border-gray-100 transform hover:scale-[1.01] transition-transform duration-300 animate-slide-up">
+        <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">Shipping Address</h2>
+        {% if order.address %}
+        <div class="space-y-2 text-gray-700 text-sm sm:text-base capitalize">
+          <p>{{ order.address.full_name }}</p>
+          <p>{{ order.address.street_address }}</p>
+          <p>{{ order.address.city }}, {{ order.address.state }}, {{ order.address.postal_code }}</p>
+          <p>{{ order.address.country }}</p>
+          <p><span class="font-semibold">Contact Number:</span> {{ order.address.alternate_phone_number }}</p>
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-sm sm:text-base italic">No address provided.</p>
+        {% endif %}
+      </div>
+
+      <!-- Order Items -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-8 border border-gray-100 transform hover:scale-[1.01] transition-transform duration-300 animate-slide-up">
+        <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">Items</h2>
+        <div class="space-y-6">
+          {% for item in order.items.all %}
+          <div class="flex flex-col sm:flex-row items-start sm:items-center border-b border-gray-200 pb-6 gap-4">
+            {% for image in item.product.images.all %}
+            {% if image.is_primary %}
+            <img src="{{ image.image.url }}" alt="{{ item.product.name }}"
+                 class="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-xl shadow-sm">
+            {% endif %}
+            {% empty %}
+            <img src="https://via.placeholder.com/100" alt="No Image"
+                 class="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-xl shadow-sm">
+            {% endfor %}
+            <div class="flex-1">
+              <h3 class="text-base sm:text-lg lg:text-xl font-medium text-gray-800">{{ item.product.name }} <span class="text-gray-600">({{ item.color }})</span></h3>
+              <p class="text-gray-600 text-sm sm:text-base">Product ID: #{{ item.product.id }}</p>
+            </div>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 text-left sm:text-right">
+              <div>
+                <p class="text-gray-700 text-sm sm:text-base {% if not item.status %} hidden {% endif %}">
+                  <span class="font-semibold">Status:</span> 
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize
+                    {% if item.status == 'pending' %}bg-yellow-100 text-yellow-800{% endif %}
+                    {% if item.status == 'confirmed' %}bg-blue-100 text-blue-800{% endif %}
+                    {% if item.status == 'shipped' %}bg-blue-100 text-blue-800{% endif %}
+                    {% if item.status == 'delivered' %}bg-green-100 text-green-800{% endif %}
+                    {% if item.status == 'canceled' %}bg-red-100 text-red-800{% endif %}
+                  ">
+                    {{ item.status|capfirst }}
+                  </span>
+                </p>
+                <p class="text-gray-700 text-sm sm:text-base">Quantity: {{ item.quantity }}</p>
+                <p class="text-gray-700 text-sm sm:text-base">Price: ₹{{ item.price|floatformat:2 }}</p>
+                <p class="text-gray-800 font-semibold text-sm sm:text-base">Total: ₹{{ item.total_price|floatformat:2 }}</p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Status Timeline -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100 transform hover:scale-[1.01] transition-transform duration-300 animate-slide-up">
+        <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4">Order Status Timeline</h2>
+        <div class="relative">
+          <div class="absolute h-1 bg-gray-200 w-full top-5 left-0"></div>
+          <ol class="flex flex-wrap md:flex-row flex-col md:items-start items-center justify-between w-full gap-4 md:gap-1">
+            {% if order.status != 'canceled' %}
+            <!-- Order Placed -->
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-900 text-base sm:text-lg font-medium leading-normal whitespace-nowrap">
+                    Order Placed
+                  </h5>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                          fill="#047857" />
+                  </svg>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  {{ order.created_at|date:"d M, Y" }}
+                </h6>
+              </div>
+            </li>
+            <!-- Processing -->
+            {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-900 text-base sm:text-lg font-medium leading-normal whitespace-nowrap">
+                    Processing
+                  </h5>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                          fill="#047857" />
+                  </svg>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  {{ order.updated_at|date:"d M, Y" }}
+                </h6>
+              </div>
+            </li>
+            {% else %}
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-400 text-base sm:text-lg font-medium leading-normal whitespace-nowrap">
+                    Processing
+                  </h5>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  <!-- No date for inactive status -->
+                </h6>
+              </div>
+            </li>
+            {% endif %}
+            <!-- Confirmed -->
+            {% if order.status == 'confirmed' or order.status == 'shipped' or order.status == 'delivered' %}
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-900 noemen-normal">
+                    Confirmed
+                  </h5>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                          fill="#047857" />
+                  </svg>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  {{ order.updated_at|date:"d M, Y" }}
+                </h6>
+              </div>
+            </li>
+            {% else %}
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-400 text-base sm:text-lg font-medium leading-normal whitespace-nowrap">
+                    Confirmed
+                  </h5>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  <!-- No date for inactive status -->
+                </h6>
+              </div>
+            </li>
+            {% endif %}
+            <!-- Order Shipped -->
+            {% if order.status == 'shipped' or order.status == 'delivered' %}
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-900 text-base sm:text-lg font-medium leading-normal whitespace-nowrap">
+                    Order Shipped
+                  </h5>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                          fill="#047857" />
+                  </svg>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  {{ order.updated_at|date:"d M, Y" }}
+                </h6>
+              </div>
+            </li>
+            {% else %}
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-400 text-base sm:text-lg font-medium leading-normal whitespace-nowrap">
+                    Order Shipped
+                  </h5>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  <!-- No date for inactive status -->
+                </h6>
+              </div>
+            </li>
+            {% endif %}
+            <!-- Order Delivered -->
+            {% if order.status == 'delivered' %}
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-900 text-base sm:text-lg font-medium leading-normal whitespace-nowrap">
+                    Order Delivered
+                  </h5>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                          d="M1.83337 9.99992C1.83337 5.48959 5.48972 1.83325 10 1.83325C14.5104 1.83325 18.1667 5.48959 18.1667 9.99992C18.1667 14.5102 14.5104 18.1666 10 18.1666C5.48972 18.1666 1.83337 14.5102 1.83337 9.99992ZM14.3635 7.92721C14.6239 7.66687 14.6239 7.24476 14.3635 6.98441C14.1032 6.72406 13.6811 6.72406 13.4207 6.98441L9.82961 10.5755C9.53851 10.8666 9.3666 11.0365 9.22848 11.1419C9.17307 11.1842 9.13961 11.2029 9.1225 11.2107C9.1054 11.2029 9.07194 11.1842 9.01653 11.1419C8.87841 11.0365 8.7065 10.8666 8.4154 10.5755L7.13815 9.29825C6.8778 9.03791 6.45569 9.03791 6.19534 9.29825C5.93499 9.55861 5.93499 9.98071 6.19534 10.2411L7.50018 11.5459C7.75408 11.7999 7.98968 12.0355 8.20775 12.2019C8.44909 12.3861 8.74554 12.5469 9.1225 12.5469C9.49946 12.5469 9.79592 12.3861 10.0373 12.2019C10.2553 12.0355 10.4909 11.7999 10.7448 11.5459L14.3635 7.92721Z"
+                          fill="#047857" />
+                  </svg>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  {{ order.updated_at|date:"d M, Y" }}
+                </h6>
+              </div>
+            </li>
+            {% else %}
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-400 text-base sm:text-lg font-medium leading-normal whitespace-nowrap">
+                    Order Delivered
+                  </h5>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  <!-- No date for inactive status -->
+                </h6>
+              </div>
+            </li>
+            {% endif %}
+            {% else %}
+            <!-- Canceled -->
+            <li class="group flex relative justify-start">
+              <div class="w-full z-10 flex flex-col items-center justify-start gap-2">
+                <div class="justify-center items-center gap-1.5 inline-flex">
+                  <h5 class="text-center text-gray-900 text-base sm:text-lg font-medium leading-normal whitespace-nowrap uppercase">
+                    Canceled
+                  </h5>
+                  <svg height="20" width="20" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                    <path style="fill:#FF6465;" d="M256,512c141.384,0,256-114.615,256-256S397.384,0,256,0S0,114.615,0,256S114.616,512,256,512z"/>
+                    <path style="opacity:0.1;" d="M68.873,256c0-129.706,96.466-236.866,221.564-253.688C279.172,0.798,267.681,0,256,0C114.616,0,0,114.615,0,256s114.616,512,256,512c11.68,0,23.171-0.798,34.436-2.313C165.339,492.865,68.873,385.705,68.873,256z"/>
+                    <path style="fill:#FFFFFF;" d="M313.391,256l67.398-67.398c4.899-4.899,4.899-12.842,0-17.74l-39.65-39.65c4.899-4.899-12.842-4.899-17.74,0L256,198.609l-67.398-67.398c-4.899-4.899-12.842-4.899-17.74,0l-39.65,39.65c-4.899,4.899-4.899,12.842,0,17.74L198.609,256l-67.398,67.398c-4.899,4.899-4.899,12.842,0,17.741l39.65,39.65c4.899,4.899,12.842,4.899,17.74,0L256,313.391l67.398,67.398c4.899,4.899,12.842,4.899,17.74,0l39.65-39.65c4.899-4.899,4.899-12.842,0-17.741L313.391,256z"/>
+                  </svg>
+                </div>
+                <h6 class="text-center text-gray-500 text-sm sm:text-base font-normal leading-relaxed">
+                  {{ order.updated_at|date:"d M, Y" }}
+                </h6>
+              </div>
+            </li>
+            {% endif %}
+          </ol>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="container mx-auto px-4 py-6 sm:py-8">
+      <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100 animate-slide-up">
+        <p class="text-gray-500 text-sm sm:text-base text-center italic">No order found.</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Custom Animation Styles -->
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+</style>
+{% endblock %}

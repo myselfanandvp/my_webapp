@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Dashboard</title>
+    <link href="{% static 'dir/style.css' %}" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Volkhov:wght@700&display=swap"
+        rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/static/js/app.js?v=1.3.2"></script>
+
+</head>
+<style>
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+</style>
+
+<body>
+
+
+    <div class="flex min-h-screen bg-gray-100 font-inter">
+        <!-- Left Sidebar -->
+        <div class="w-64 bg-gray-900 text-white p-6 flex flex-col space-y-4 fixed inset-y-0 left-0 transform -translate-x-full md:transform-none transition-transform duration-500 ease-in-out md:static md:w-64 z-20"
+            id="sidebar">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-4">
+                    {% if user.profile_img %}
+                    <img src="{{ user.profile_img.url }}" alt="Profile Image"
+                        class="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover">
+                    {% else %}
+                    <img src="{% static 'app_images/general_images/No_image.svg.png' %}" alt="Default Profile"
+                        class="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover">
+                    {% endif %}
+                    <p class="text-white text-base font-medium">Hello {% if user.first_name %}
+                        {{ user.first_name|default:"" }}
+                        {% else %}
+                        Not set
+                        {% endif %}</p>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <a href="{%url 'user_profile_url' %}"
+                    class="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg">
+                    <img src="https://cdn-icons-png.flaticon.com/512/8345/8345328.png" alt="profile" class="w-5 h-5">
+                    <span class="text-white text-sm">Profile</span>
+                </a>
+                <a href="{%url 'user_address_url' %}"
+                    class="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4942/4942358.png" alt="logout" class="w-5 h-5">
+                    <span class="text-white text-sm">Address</span>
+                </a>
+                <a href="{%url 'orders_url' %}" class="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg">
+                    <img src="https://www.kindpng.com/picc/m/280-2801416_customer-order-orders-icon-clipart-png-download-order.png"
+                        alt="orders" class="w-5 h-5 rounded-2xl">
+                    <span class="text-white text-sm">Orders</span>
+                </a>
+                <a href="{% url 'wallet_url' %}" class="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg">
+                    <img src="https://cdn-icons-png.flaticon.com/512/583/583985.png" alt="wallet" class="w-5 h-5">
+                    <span class="text-white text-sm">Wallet</span>
+                </a>
+
+                 <a href="{% url 'coupons_url' %}" class="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg">
+                    <img src="https://cdn-icons-png.flaticon.com/512/583/583985.png" alt="wallet" class="w-5 h-5">
+                    <span class="text-white text-sm">Coupons</span>
+                </a>
+
+                <a href="{% url 'referral_url' %}" class="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg">
+                    <img src="https://e7.pngegg.com/pngimages/694/843/png-clipart-referral-marketing-computer-icons-graphics-illustration-affiliate-icon-logo-social-media-marketing-thumbnail.png"
+                        alt="refer&earn" class="w-5 h-5 rounded-2xl">
+                    <span class="text-white text-sm">Refer and Earn</span>
+                </a>
+                <a href="{% url 'delete_account_url' %}" class="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg">
+                    <img src="https://cdn-icons-png.flaticon.com/512/6861/6861362.png" alt="delete" class="w-5 h-5">
+                    <span class="text-white text-sm">Delete Account</span>
+                </a>
+                <div class="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg">
+                    <img src="https://png.pngtree.com/png-vector/20190505/ourmid/pngtree-vector-logout-icon-png-image_1022628.jpg"
+                        alt="refer" class="w-5 h-5 rounded-xl">
+                    <form method="post" action="{% url 'logout_user_url' %}">
+                        {% csrf_token %}
+                        <button type="submit" class=" text-center  text-red-600 ">Sign
+                            Out</button>
+                    </form>
+                </div>
+
+                <a href="{% url 'all_products_url' %}"
+                    class="inline-flex items-center justify-center p-2 text-base font-medium text-gray-500 rounded-lg bg-gray-50 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700 dark:hover:text-white">
+
+                    <svg width="20px" viewBox="-19.04 0 75.804 75.804" xmlns="http://www.w3.org/2000/svg"
+                        fill="#ffffff" transform="matrix(-1, 0, 0, 1, 0, 0)" stroke="#ffffff" stroke-width="0.75804">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                            <g id="Group_65" data-name="Group 65" transform="translate(-831.568 -384.448)">
+                                <path id="Path_57" data-name="Path 57"
+                                    d="M833.068,460.252a1.5,1.5,0,0,1-1.061-2.561l33.557-33.56a2.53,2.53,0,0,0,0-3.564l-33.557-33.558a1.5,1.5,0,0,1,2.122-2.121l33.556,33.558a5.53,5.53,0,0,1,0,7.807l-33.557,33.56A1.5,1.5,0,0,1,833.068,460.252Z"
+                                    fill="#0c2c67"></path>
+                            </g>
+                        </g>
+                    </svg>
+                    <span class="w-full">Go Home</span>
+
+                </a>
+
+
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col transition-all duration-300" id="main-content">
+            <!-- Header -->
+            <div class="bg-gray-900 p-4 flex items-center justify-end lg:justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'all_products_url' %}">
+
+                        <p class="text-2xl font-volkhov text-white">WaveLift</p>
+                    </a>
+                    <button class="text-white focus:outline-none md:hidden" id="toggle-sidebar">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" id="menu-open"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" class="hidden" id="menu-close"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <main>
+                <!-- Profile Content -->
+                <div class="flex justify-center items-center min-h-screen  shadow-2xl">
+
+                    {% block content %}
+
+                    {% endblock %}
+                </div>
+            </main>
+
+
+
+            {% include 'shared/footer.html' %}
+
+            <!-- SweetAlert for Django messages -->
+            {% if messages %}
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+                {% for message in messages %}
+                Swal.fire({
+                    position: "center",
+                    icon: "{{ message.tags|default:'success' }}",
+                    title: "{{ message|escapejs }}",
+                    showConfirmButton: false,
+                    timer: 1900,
+                    toast: true,
+                    width: 'auto',
+                    customClass: {
+                        popup: 'max-w-[90%] sm:max-w-[400px]'
+                    }
+                });
+                {% endfor %}
+            </script>
+            {% endif %}
+
+            <script>
+                const sidebar = document.getElementById('sidebar');
+                const toggleButton = document.getElementById('toggle-sidebar');
+                const menuOpen = document.getElementById('menu-open');
+                const menuClose = document.getElementById('menu-close');
+                const mainContent = document.getElementById('main-content');
+
+                toggleButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                    menuOpen.classList.toggle('hidden');
+                    menuClose.classList.toggle('hidden');
+                });
+
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth < 768 && !sidebar.contains(e.target) && !toggleButton.contains(e.target)) {
+                        sidebar.classList.add('-translate-x-full');
+                        menuOpen.classList.remove('hidden');
+                        menuClose.classList.add('hidden');
+                    }
+                });
+
+                // Ensure sidebar is always visible on large screens
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 768) {
+                        sidebar.classList.remove('-translate-x-full');
+                        mainContent.classList.remove('ml-64'); // Remove any margin
+                        menuOpen.classList.remove('hidden');
+                        menuClose.classList.add('hidden');
+                    } else {
+                        sidebar.classList.add('-translate-x-full');
+                        mainContent.classList.remove('ml-64');
+                    }
+                });
+
+                // Initial check on page load
+                if (window.innerWidth >= 768) {
+                    sidebar.classList.remove('-translate-x-full');
+                    mainContent.classList.remove('ml-64'); // Ensure no margin on load
+                }
+            </script>
+
+</body>
+
+
+</html>

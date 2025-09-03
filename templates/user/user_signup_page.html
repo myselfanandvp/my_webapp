@@ -1,0 +1,123 @@
+{% extends 'shared/base.html' %}
+{% block title %}Sign Up{% endblock %}
+{% load static %}
+{% load socialaccount %}
+
+{% block content %}
+<main class="flex justify-center items-center min-h-screen px-4 py-8 bg-gray-200">
+    <div class="grid grid-cols-1 md:grid-cols-2 bg-gray-700 p-6 gap-6 rounded-3xl shadow-xl w-full max-w-5xl">
+        <!-- Form Section -->
+        <form method="post" class="flex flex-col justify-center w-full space-y-4">
+            {% csrf_token %}
+            <div class="text-center mb-4">
+                <p class="text-white font-bold text-3xl md:text-4xl">Sign Up</p>
+            </div>
+
+            <!-- Google Signup Button -->
+            <div class="flex justify-center">
+                <a href="{% provider_login_url 'google' %}"
+                    class="flex items-center justify-center gap-2 bg-black p-3 text-white rounded-3xl w-60 hover:bg-gray-800 transition">
+                    <svg width="24" viewBox="-3 0 262 262" xmlns="http://www.w3.org/2000/svg" fill="#fff">
+                        <path
+                            d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027"
+                            fill="#4285F4"></path>
+                        <path
+                            d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1"
+                            fill="#34A853"></path>
+                        <path
+                            d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782"
+                            fill="#FBBC05"></path>
+                        <path
+                            d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251"
+                            fill="#EB4335"></path>
+                    </svg>
+                    Signup with Google
+                </a>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="flex-grow border-t border-gray-300"></span>
+                <span class="text-lg text-gray-300">or</span>
+                <span class="flex-grow border-t border-gray-300"></span>
+            </div>
+
+            <!-- Form Fields -->
+            {% for field in form %}
+            <div>
+                <label class="block mb-1 text-sm font-medium text-gray-300" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% if field.label == "Password" or field.label == "Confirm Password" %}
+                <div class="relative">
+                    {{ field }}
+                    <button 
+                        type="button" 
+                        id="togglePassword_{{ field.name }}" 
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-200"
+                    >
+                        <svg id="eyeIcon_{{ field.name }}" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </button>
+                </div>
+                {% else %}
+                {{ field }}
+                {% endif %}
+                {% if field.errors %}
+                <p class="text-sm text-red-400 pt-2">{{ field.errors|striptags }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <!-- Submit Button -->
+            <div class="flex justify-center">
+                <button type="submit"
+                    class="text-white w-52 bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center transition">
+                    Sign Up
+                </button>
+            </div>
+
+            <div class="flex justify-center">
+                <p class="text-gray-400">Already have an account? <span><a class="text-blue-300 hover:text-blue-400"
+                            href="{% url 'login_user_url' %}">Login...!</a></span></p>
+            </div>
+        </form>
+
+        <!-- Image Section -->
+        <div class="hidden md:flex justify-center items-center w-full h-full rounded-2xl overflow-hidden relative">
+            <img src="{% static 'app_images/form_images/signup-banner.jpeg' %}" alt="Signup Banner"
+                class="absolute inset-0 w-full h-full object-cover" />
+        </div>
+    </div>
+</main>
+
+<script>
+    // Password toggle functionality for Password and Confirm Password fields
+    {% for field in form %}
+    {% if field.label == "Password" or field.label == "Confirm Password" %}
+    const togglePassword_{{ field.name }} = document.getElementById('togglePassword_{{ field.name }}');
+    const passwordInput_{{ field.name }} = document.querySelector('input[name="{{ field.name }}"]');
+    const eyeIcon_{{ field.name }} = document.getElementById('eyeIcon_{{ field.name }}');
+
+    if (togglePassword_{{ field.name }} && passwordInput_{{ field.name }} && eyeIcon_{{ field.name }}) {
+        togglePassword_{{ field.name }}.addEventListener('click', () => {
+            const type = passwordInput_{{ field.name }}.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput_{{ field.name }}.setAttribute('type', type);
+
+            // Toggle between eye and eye-slash icons
+            if (type === 'text') {
+                eyeIcon_{{ field.name }}.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.975 9.975 0 011.662-2.908m2.858-1.367A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.974 9.974 0 01-1.662 2.908m-2.858 1.367A10.05 10.05 0 0112 19m0 0v0m0 0c-1.656 0-3-1.344-3-3s1.344-3 3-3 3 1.344 3 3-1.344 3-3 3z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"></path>
+                `;
+            } else {
+                eyeIcon_{{ field.name }}.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                `;
+            }
+        });
+    }
+    {% endif %}
+    {% endfor %}
+</script>
+{% endblock %}

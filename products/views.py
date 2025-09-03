@@ -280,7 +280,9 @@ class AddBrand(LoginRequiredMixin,View):
         form = ProductBrandForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request,'New brand as be added')   
             return redirect('add_brand_url')
+        messages.error(request,"Please correct the errors!")
         return render(request,self.template_name,{'form':form})
     
     
@@ -292,7 +294,8 @@ class DeactivateBrand(LoginRequiredMixin,View):
             brand.status=0
         elif brand.status == 0:
             brand.status=1        
-        brand.save()        
+        brand.save()   
+        messages.success(request,'Deactivated')  
         return redirect('add_brand_url')
     
     
@@ -300,6 +303,7 @@ class DeleteBrand(LoginRequiredMixin,View):
     def post(self,request,id):
         brand = get_object_or_404(Brand,id=id)
         brand.delete()
+        messages.success(request,'Deleted')
         return redirect('add_brand_url')
 
         

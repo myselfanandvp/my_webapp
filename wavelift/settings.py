@@ -34,8 +34,8 @@ SECRET_KEY = os.getenv('django_key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
+# DEBUG = True
 DEBUG=os.getenv('DEBUG','False').lower() == 'true'
-DEBUG = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -200,16 +200,16 @@ WSGI_APPLICATION = 'wavelift.wsgi.application'
 # }
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('db_name'),
-        'USER': os.getenv('db_user'),
-        'PASSWORD':os.getenv('db_password'),
-        'HOST': 'localhost',  # or your DB host
-        'PORT': '5432',       # default PostgreSQL port
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('db_name'),
+#         'USER': os.getenv('db_user'),
+#         'PASSWORD':os.getenv('db_password'),
+#         'HOST': 'localhost',  # or your DB host
+#         'PORT': '5432',       # default PostgreSQL port
+#     }
+# }
 
 # DATABASES = {
 #     'default': dj_database_url.parse(
@@ -226,9 +226,9 @@ DATABASES = {
 
 
 
-# db_external_url = os.getenv('external_url')
+db_external_url = os.getenv('external_url')
 
-# DATABASES['default']=dj_database_url.parse(db_external_url)
+DATABASES['default']=dj_database_url.parse(db_external_url)
 
 AUTH_PASSWORD_VALIDATORS = [
     {

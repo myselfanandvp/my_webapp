@@ -29,6 +29,19 @@ class Contactus(View):
     def get(self,request):
         return render(request,self.template_name,{})
     
+    def post(self,request):
+        user_name = request.POST.get('name',None)
+        email = request.POST.get('email',None)
+        message = request.POST.get('message',None)
+        
+        if user_name and email and message:
+            messages.success(request,"Thank you! We will contact you shortly.")        
+            return redirect('contact_page')
+            
+        messages.error(request,'An error occurred while sending your message. Please try again later.')
+        return redirect('contact_page')
+        
+    
 class Aboutus(View):
     template_name='core/about.html'
    

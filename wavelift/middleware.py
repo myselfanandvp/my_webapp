@@ -8,10 +8,7 @@ class Custom404Middleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        # Print actual status code
-        #print(f"Middleware Status Code: {response.status_code}")
-
-        # Custom 404 handling
+        # Custom  handling
         if response.status_code == 404:
             return redirect('pagenotfound_url')
         elif response.status_code == 500:

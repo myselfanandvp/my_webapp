@@ -33,7 +33,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('django_key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+DEBUG=os.getenv('DEBUG','False').lower() == 'true'
+DEBUG = False
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -47,8 +49,6 @@ CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
 
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -183,7 +183,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'wavelift.wsgi.application'
 
 
+
+
+
+
 # Database
+
+
+
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # DATABASES = {
@@ -215,6 +222,14 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+
+
+
+
+db_external_url = os.getenv('external_url')
+
+DATABASES['default']=dj_database_url.parse(db_external_url)
 
 AUTH_PASSWORD_VALIDATORS = [
     {

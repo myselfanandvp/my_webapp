@@ -1,5 +1,5 @@
 # middleware.py
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,HttpResponse
 
 class Custom404Middleware:
     def __init__(self, get_response):
@@ -14,6 +14,9 @@ class Custom404Middleware:
         # Custom 404 handling
         if response.status_code == 404:
             return redirect('pagenotfound_url')
+        elif response.status_code == 500:
+            return redirect('server_error_url')
 
 
         return response
+    

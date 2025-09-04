@@ -53,6 +53,12 @@ class PageNotFound(View):
     def get(self,request):
         return render(request,self.template_name,{})
     
+    
+class ServerError(View):
+    template_name = 'shared/server_error.html'
+    def get(self,request):
+        return render(request,self.template_name)
+    
 
 @method_decorator(never_cache, name='dispatch')   
 class AllProducts(LoginRequiredMixin,View):

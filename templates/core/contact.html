@@ -3,9 +3,10 @@
 {%block content%}
 
 
-<!-- Contact Form --><section class="bg-gray-200 py-16 px-8">
+<!-- Contact Form -->
+<section class="bg-gray-200 py-16 px-8">
   <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 bg-white shadow-lg rounded-3xl overflow-hidden">
-    
+
     <!-- Left: Contact Info -->
     <div class="bg-cyan-500 text-white p-8 flex flex-col justify-between">
       <div>
@@ -25,9 +26,15 @@
       <h3 class="text-2xl font-semibold mb-6">Send Us a Message</h3>
       <form action="" method="post" class="space-y-4">
         {% csrf_token %}
-        <input type="text" name="name" placeholder="Your Name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-        <input type="email" name="email" placeholder="Your Email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-        <textarea name="message" placeholder="Your Message" rows="5" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full resize-none  p-2.5" required></textarea>
+        <input type="text" name="name" placeholder="Your Name"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          required>
+        <input type="email" name="email" placeholder="Your Email"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          required>
+        <textarea name="message" placeholder="Your Message" rows="5"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full resize-none  p-2.5"
+          required></textarea>
         <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg">Send</button>
       </form>
     </div>
@@ -35,6 +42,27 @@
   </div>
 </section>
 
+
+
+{% if messages %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  {% for message in messages %}
+  Swal.fire({
+    position: "center",
+    icon: "{{ message.tags|default:'success' }}",
+    title: "{{ message|escapejs }}",
+    showConfirmButton: false,
+    timer: 1900,
+    toast: true,
+    width: 'auto',
+    customClass: {
+      popup: 'max-w-[90%] sm:max-w-[400px]'
+    }
+  });
+  {% endfor %}
+</script>
+{% endif %}
 
 
 

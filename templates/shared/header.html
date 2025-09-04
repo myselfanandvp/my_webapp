@@ -324,11 +324,11 @@
 <nav class=" mt-16 bg-white text-sm font-semibold shadow-md rounded-sm px-4 py-1 hidden lg:flex" aria-label="Breadcrumb">
     <ol class="inline-flex items-center space-x-2 md:space-x-3 rtl:space-x-reverse">
         {% for crumb in breadcrumbs %}
-            {% if crumb.position and crumb.url and crumb.resolved %}
+            {% if crumb.position == 1 or crum.position == 3 and crumb.url and crumb.resolved %}
                 <li class="inline-flex items-center">
-                    <p  class="text-blue-400 hover:text-blue-900 hover:underline hover:scale-105 transition-all duration-200 ease-in-out">
+                    <a href="{{crumb.url}}"  class="text-blue-400 hover:text-blue-900 hover:underline hover:scale-105 transition-all duration-200 ease-in-out">
                         {{ crumb.name }}
-                    </p>
+                    </a>
                     <span class="mx-2 text-gray-300">/</span>
                 </li>
             {% endif %}
@@ -339,12 +339,13 @@
 
 
 <!-- JavaScript for Navigation -->
-<script>
+ <script>
   const navToggle = document.getElementById('nav-toggle');
   const navMenu = document.getElementById('nav-menu');
   const menuIcon = navToggle.querySelector('.menu-icon');
   const closeIcon = navToggle.querySelector('.close-icon');
 
+  // Mobile menu toggle
   navToggle.addEventListener('click', () => {
     navMenu.classList.toggle('hidden');
     menuIcon.classList.toggle('hidden');
@@ -368,30 +369,34 @@
       closeIcon.classList.add('hidden');
     } else {
       navMenu.classList.add('hidden');
+      menuIcon.classList.remove('hidden');
+      closeIcon.classList.add('hidden');
     }
   });
 
-  // Handle dropdowns for mobile
+  // Handle dropdowns for mobile safely
   const categoriesBtn = document.getElementById('categories-btn');
   const categoriesMenu = document.getElementById('categories-menu');
   const moreBtn = document.getElementById('more-btn');
   const moreMenu = document.getElementById('more-menu');
 
-  categoriesBtn.addEventListener('click', (e) => {
-    if (window.innerWidth < 768) {
-      e.preventDefault();
-      categoriesMenu.classList.toggle('hidden');
-      moreMenu.classList.add('hidden');
-    }
-  });
+  if (categoriesBtn && categoriesMenu) {
+    categoriesBtn.addEventListener('click', (e) => {
+      if (window.innerWidth < 768) {
+        e.preventDefault();
+        categoriesMenu.classList.toggle('hidden');
+        if (moreMenu) moreMenu.classList.add('hidden');
+      }
+    });
+  }
 
-  moreBtn.addEventListener('click', (e) => {
-    if (window.innerWidth < 768) {
-      e.preventDefault();
-      moreMenu.classList.toggle('hidden');
-      categoriesMenu.classList.add('hidden');
-    }
-  });
-
-
+  if (moreBtn && moreMenu) {
+    moreBtn.addEventListener('click', (e) => {
+      if (window.innerWidth < 768) {
+        e.preventDefault();
+        moreMenu.classList.toggle('hidden');
+        if (categoriesMenu) categoriesMenu.classList.add('hidden');
+      }
+    });
+  }
 </script>

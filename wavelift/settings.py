@@ -35,7 +35,7 @@ SECRET_KEY = os.getenv('django_key')
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG=os.getenv('DEBUG','False').lower() == 'true'
-DEBUG = False
+DEBUG = True
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -68,7 +68,6 @@ INSTALLED_APPS = [
     "wishlist.apps.WishlistConfig",
     "checkout.apps.CheckoutConfig",
     "orders.apps.OrdersConfig",
-    'django_browser_reload',
     'django_extensions',
     'core',
     'django_filters',
@@ -84,7 +83,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'django_cotton',
     'widget_tweaks',
-  
+    # 'django_browser_reload',
     
 
 ]
@@ -100,7 +99,7 @@ AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django_browser_reload.middleware.BrowserReloadMiddleware',
+    # 'django_browser_reload.middleware.BrowserReloadMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -227,9 +226,9 @@ DATABASES = {
 
 
 
-db_external_url = os.getenv('external_url')
+# db_external_url = os.getenv('external_url')
 
-DATABASES['default']=dj_database_url.parse(db_external_url)
+# DATABASES['default']=dj_database_url.parse(db_external_url)
 
 AUTH_PASSWORD_VALIDATORS = [
     {

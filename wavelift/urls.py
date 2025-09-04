@@ -31,7 +31,7 @@ urlpatterns = [
     path('wishlist/',include('wishlist.urls')),
     path('checkout/', include('checkout.urls')),
     path('orders/', include('orders.urls')),
-    path("__reload__/", include("django_browser_reload.urls")),
+    # path("__reload__/", include("django_browser_reload.urls")),
     
     
 ]

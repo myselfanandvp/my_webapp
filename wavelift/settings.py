@@ -93,7 +93,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://c50cd1eed1b3.ngrok-free.app',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://wavelift.onrender.com'
+    'https://wavelift.onrender.com',
+    
 ]
 AUTH_USER_MODEL = 'users.User'
 
@@ -226,9 +227,9 @@ DATABASES = {
 
 
 
-db_external_url = os.getenv('external_url')
+db_internal_url = os.getenv('internal_url')
 
-DATABASES['default']=dj_database_url.parse(db_external_url)
+DATABASES['default']=dj_database_url.parse(db_internal_url)
 
 AUTH_PASSWORD_VALIDATORS = [
     {

@@ -100,6 +100,7 @@ AUTH_USER_MODEL = 'users.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     # 'django_browser_reload.middleware.BrowserReloadMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -193,13 +194,21 @@ WSGI_APPLICATION = 'wavelift.wsgi.application'
 
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
+
+DATABASES={}
+
+db_internal_url = os.getenv('external_url')
+
+print(os.getenv("external_url"))
+
+DATABASES['default']=dj_database_url.parse(db_internal_url)
 
 # DATABASES = {
 #     'default': {
@@ -227,9 +236,6 @@ DATABASES = {
 
 
 
-db_internal_url = os.getenv('internal_url')
-
-DATABASES['default']=dj_database_url.parse(db_internal_url)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -289,3 +295,12 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 # MEDIA_URL = '/media/'
 
 # MEDIA_ROOT = BASE_DIR / 'media'
+
+if not DEBUG:
+    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+    # and renames the files with unique names for each version to support long-term caching
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+

@@ -206,7 +206,6 @@ DATABASES={}
 
 db_internal_url = os.getenv('external_url')
 
-print(os.getenv("external_url"))
 
 DATABASES['default']=dj_database_url.parse(db_internal_url)
 
